@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import axios from 'axios';
-import { MdEmail, MdLock } from 'react-icons/md';
-
+import { MdEmail, MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import { supabase, hasSupabase } from '../../lib/supabase';
+import logo from '../../assets/mobile-banking.png';
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -17,97 +18,147 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
+
     try {
-      const res = await axios.post('http://localhost:8080/api/user/login', formData);
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
 
-      if (res.data.status) {
-        localStorage.setItem('token', res.data.token);
-
-        const profileRes = await axios.get('http://localhost:8080/api/user/profile', {
-          headers: { Authorization: `Bearer ${res.data.token}` },
-        });
-
-        localStorage.setItem('user', JSON.stringify(profileRes.data));
-        navigate('/');
-      } else {
-        setError(res.data.message || 'Login failed');
+      if (error) {
+        setError(error.message || 'Invalid email or password');
+        return;
       }
+
+      if (!data?.session?.user) {
+        setError('Please confirm your email or check your credentials.');
+        return;
+      }
+
+      const user = data.session.user;
+      const profileResponse = await supabase
+        .from('profiles')
+        .select('username,email')
+        .eq('id', user.id)
+        .single();
+
+      const profile = profileResponse.data || { username: '', email: user.email };
+      const metadata = user.user_metadata || {};
+      const balanceValue = Number(profile.balance ?? metadata.balance ?? 0);
+      const avatarValue = profile.avatar_url || metadata.avatar_url || metadata.avatar || '';
+      const usernameValue = profile.username || metadata.username || '';
+
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          id: user.id,
+          email: user.email,
+          username: usernameValue,
+          balance: balanceValue,
+          avatar: avatarValue,
+        })
+      );
+      localStorage.setItem('token', data.session.access_token);
+      navigate('/');
     } catch {
-      setError('Invalid email or password');
+      setError('An error occurred while signing in.');
     } finally {
       setLoading(false);
     }
   };
 
-  return (
-    <div
-      className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sky-500 via-teal-400 to-emerald-400 px-4"
-      style={{ fontFamily: "'Poppins', sans-serif" }}
-    >
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-2xl p-10 space-y-8">
-        <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-gray-800 mb-2">Welcome Back!</h1>
-          <p className="text-gray-500 text-sm">Sign in to your account to continue</p>
+  if (!hasSupabase) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
+        <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
+          <h1 className="text-3xl font-bold mb-4">Supabase chưa cấu hình</h1>
+          <p className="text-slate-600">Vui lòng thêm biến môi trường VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY để đăng nhập.</p>
         </div>
+      </div>
+    );
+  }
 
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div className="relative">
-            <MdEmail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-500 text-xl" />
-            <input
-              id="email"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              className="w-full pl-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
-              placeholder="Email address"
-              autoComplete="email"
-            />
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
+      <div className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-slate-200">
+        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500" />
+        <div className="relative p-10 pt-24">
+          <div className="mb-10 text-center text-white">
+
+            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 text-2xl font-bold shadow-lg shadow-slate-300/20">
+              <img src={logo} alt="Logo" className="h-8 w-8" />
+            </div>
+            <h1 className="text-4xl font-extrabold">Wallet Login</h1>
+            <p className="mt-3 text-sm text-slate-100/90">Sign in to access your virtual wallet and expense reports.</p>
           </div>
 
-          <div className="relative">
-            <MdLock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-500 text-xl" />
-            <input
-              id="password"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              className="w-full pl-12 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-400 transition"
-              placeholder="Password"
-              autoComplete="current-password"
-            />
+          <div className="rounded-[2rem] bg-slate-50 p-8 shadow-xl shadow-slate-200/60">
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="email" className="text-sm font-semibold text-slate-700">Email</label>
+                <div className="relative">
+                  <MdEmail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-4 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    placeholder="Email address"
+                    autoComplete="email"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="password" className="text-sm font-semibold text-slate-700">Password</label>
+                <div className="relative">
+                  <MdLock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
+                  <input
+                    id="password"
+                    name="password"
+                    type={showPassword ? 'text' : 'password'}
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-16 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    placeholder="Password"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+                  >
+                    {showPassword ? <MdVisibilityOff className="h-5 w-5" /> : <MdVisibility className="h-5 w-5" />}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="rounded-3xl bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-700">{error}</div>
+              )}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className={`flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-sky-500/20 transition duration-300 ${loading ? 'cursor-not-allowed opacity-70' : 'hover:scale-[1.01]'}`}
+              >
+                {loading ? 'Signing In...' : 'Sign In'}
+              </button>
+            </form>
+
+            <p className="mt-6 text-center text-sm text-slate-600">
+              Don’t have an account?{' '}
+              <Link to="/register" className="font-semibold text-sky-600 transition hover:text-sky-700">
+                Sign up
+              </Link>
+            </p>
           </div>
-
-          {error && (
-            <div className="text-center text-red-600 text-sm font-medium">{error}</div>
-          )}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className={`w-full py-3 rounded-lg text-white font-semibold tracking-wide
-              bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500
-              hover:from-emerald-500 hover:to-sky-500
-              transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-teal-300
-              ${loading ? 'opacity-70 cursor-not-allowed animate-pulse' : ''}
-            `}
-          >
-            {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="text-center text-gray-600 text-sm">
-          Don’t have an account?{' '}
-          <Link
-            to="/register"
-            className="text-teal-600 font-semibold hover:text-emerald-600 transition"
-          >
-            Sign up
-          </Link>
-        </p>
+        </div>
       </div>
     </div>
   );

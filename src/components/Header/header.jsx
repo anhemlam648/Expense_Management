@@ -1,111 +1,90 @@
 import React from 'react';
-// import { useContext } from 'react';
-import { useNavigate } from 'react-router-dom'; 
-// import { ThemeContext } from "../ThemeContext/themecontext"; 
+import { useNavigate, useLocation } from 'react-router-dom';
+
+const navItems = [
+  { label: 'Home', path: '/', icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9.75L12 3l9 6.75V21a1.5 1.5 0 01-1.5 1.5H4.5A1.5 1.5 0 013 21V9.75z" />
+      </svg>
+    )},
+  { label: 'Transactions', path: '/transaction', icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v8m0-8h4m-4 0H8m-4 4h16" />
+      </svg>
+    )},
+  { label: 'Categories', path: '/categories', icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h8m-8 6h16" />
+      </svg>
+    )},
+  { label: 'Statistics', path: '/statistics', icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3v18m4-15v12M7 12h10" />
+      </svg>
+    )},
+  { label: 'Settings', path: '/settings', icon: (
+      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8a4 4 0 110 8 4 4 0 010-8z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.93 4.93l2.12 2.12M1 12h3M4.93 19.07l2.12-2.12M12 21h0M19.07 19.07l-2.12-2.12M21 12h-3M19.07 4.93l-2.12 2.12" />
+      </svg>
+    )},
+];
 
 const Header = () => {
-  const navigate = useNavigate(); 
-  // const { theme } = useContext(ThemeContext);
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleNavigation = (path) => {
-    navigate(path); 
-  };
-
-  const user = JSON.parse(localStorage.getItem('user'));
+  let user = null;
   const token = localStorage.getItem('token');
+
+  try {
+    user = JSON.parse(localStorage.getItem('user'));
+  } catch (err) {
+    user = null;
+  }
 
   if (!token || !user) return null;
 
-  const getInitial = () => {
-    if (user?.email && user.email.trim().length > 0) {
-      return user.email.charAt(0).toUpperCase();
-    }
-    return 'U';
-  };
-
-  const initial = getInitial();
-
-  // const username = "Alice Nguyen";
-  // const initial = username.charAt(0).toUpperCase();
-  const SidebarIcon = ({ icon, label, path }) => (
-    <button
-      onClick={() => handleNavigation(path)} 
-    //   className={`flex flex-col items-center justify-center w-full h-16 transition-colors duration-200
-    //     ${theme === "dark" ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-500 hover:bg-gray-200 hover:text-gray-800"}`}
-    // >
-         className={`flex flex-col items-center justify-center w-full h-16 transition-colors duration-200
-         "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-500 hover:bg-gray-200 hover:text-gray-800"}`}
-       >
-      {icon}
-      <span className="text-xs mt-1">{label}</span>
-    </button>
-  );
-
   return (
-    // <aside className={`w-20 flex flex-col items-center py-4 shadow-md
-    //   ${theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
-    <aside className={`w-20 flex flex-col items-center py-4 shadow-md
-       "bg-gray-900 text-white" : "bg-white text-gray-900"}`}>
-  
-      <nav className="flex flex-col space-y-4 w-full">
-        <SidebarIcon 
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9.75L12 3l9 6.75V21a1.5 1.5 0 01-1.5 1.5H4.5A1.5 1.5 0 013 21V9.75z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 22V12h6v10" />
-            </svg>
-          } 
-          label="Home" 
-          path="/" 
-        />
-        <SidebarIcon 
-          icon={
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <rect x="2" y="6" width="20" height="12" rx="2" ry="2" strokeWidth={2} stroke="currentColor" fill="none"/>
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v4m0-4a2 2 0 100 4 2 2 0 000-4" />
-            </svg>
-          } 
-          label="Transactions" 
-          path="/transaction" 
-        />
-        <SidebarIcon 
-          icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v18l15-9-15-9z" />
-          </svg>} 
-          label="Categories" 
-          path="/Categories" 
-        />
-        <SidebarIcon 
-          icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>} 
-          label="Statistics" 
-          path="/Statistics" 
-        />
-        <SidebarIcon 
-          icon={<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11h-6M9 11H3m6 0h6M3 15h18M3 7h18" />
-          </svg>} 
-          label="Settings" 
-          path="/Settings" 
-        />
-      </nav>
-      {/* User Avatar */}
-        <div className="flex flex-col items-center mb-4 mt-5">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-teal-400 to-teal-600 flex items-center justify-center text-white font-bold text-lg shadow-md">
-            {initial}
-          </div>
-          <button
-            onClick={() => {
-              localStorage.removeItem("token");
-              localStorage.removeItem("user");
-              navigate("/login");
-            }}
-            className="text-xs text-red-500 hover:underline mt-2"
-          >
-            Logout
-          </button>
+    <aside className="hidden w-72 shrink-0 flex-col justify-between border-r border-slate-200 bg-white/95 p-6 shadow-2xl backdrop-blur-xl lg:flex min-h-screen">
+      <div className="space-y-8">
+        <div className="rounded-3xl bg-slate-950 p-6 text-white shadow-2xl shadow-slate-900/10">
+          <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Expense manager</p>
+          <h1 className="mt-3 text-2xl font-bold">Finance Studio</h1>
+          <p className="mt-3 text-sm leading-6 text-slate-300">Fast, clean and modern expense tracking for your business.</p>
         </div>
+
+        <nav className="space-y-3">
+          {navItems.map((item) => {
+            const active = location.pathname === item.path;
+            return (
+              <button
+                key={item.label}
+                onClick={() => navigate(item.path)}
+                className={`group flex w-full items-center gap-4 rounded-3xl px-4 py-4 text-left transition ${active ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
+              >
+                <span className={`grid h-11 w-11 place-items-center rounded-2xl ${active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-600'}`}>
+                  {item.icon}
+                </span>
+                <span className="font-semibold">{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </div>
+
+      <div className="mt-auto">
+        <button
+          onClick={() => {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login');
+          }}
+          className="w-full rounded-3xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-600"
+        >
+          Logout
+        </button>
+      </div>
     </aside>
   );
 };

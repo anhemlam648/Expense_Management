@@ -1,328 +1,363 @@
-import React from 'react';
-import { useState } from 'react';
-import axios from 'axios';
-import { useEffect } from 'react';
-import { FaSave } from "react-icons/fa";
-import { MdCancel } from "react-icons/md";
-
-
-// Sample categories data (temporary)
-// const initialCategories = [
-//   { id: 1, name: 'Food', type: 'EXPENSE' },
-//   { id: 2, name: 'Transportation', type: 'EXPENSE' },
-//   { id: 3, name: 'Salary', type: 'INCOME' },
-//   { id: 4, name: 'Entertainment', type: 'EXPENSE' },
-// ];
+import React, { useCallback, useEffect, useState } from 'react';
+import { supabase, hasSupabase } from '../../lib/supabase';
 
 const Categories = () => {
-
-  // const [categories, setCategories] = useState(initialCategories);
   const [categories, setCategories] = useState([]);
   const [categoryName, setCategoryName] = useState('');
   const [categoryType, setCategoryType] = useState('EXPENSE');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-
-  const token = localStorage.getItem("token");
-
-  // Edit Category States
   const [editingId, setEditingId] = useState(null);
-  const [editName, setEditName] = useState("");
-  const [editType, setEditType] = useState("EXPENSE");
+  const [editName, setEditName] = useState('');
+  const [editType, setEditType] = useState('EXPENSE');
+  const [user, setUser] = useState(null);
+  const [fallbackMode, setFallbackMode] = useState(false);
 
-
-  // Load categories from API
-    const fetchCategories = async () => {
-      try {
-        setLoading(true);
-        const res = await axios.get("http://localhost:8080/api/categories/list", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        setCategories(res.data);
-        setError('');
-      } catch (err) {
-        console.error(err);
-        setError('Failed to load categories');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    useEffect(() => {
-      if (token) {
-        fetchCategories();
-      } else {
-        setLoading(false);
-        setError('No token found');
-      }
-    }, [token]);
-
-
-  // const handleAddCategory = () => {
-  //   if (!categoryName) return;
-
-  //   const newCategory = {
-  //     id: categories.length + 1, // Simple ID generation
-  //     type: categoryType,
-  //   };
-
-  //   setCategories([...categories, newCategory]);
-  //   setCategoryName('');
-  //   setCategoryType('EXPENSE');
-  // };
-
-  const handleAddCategory = async () => {
-    if (!categoryName.trim()) return;
-
+  const getCategoryStorageKey = (userId) => `local_categories_${userId}`;
+  const loadLocalCategories = (userId) => {
     try {
-      const res = await axios.post(
-        "http://localhost:8080/api/categories/add",
-        { name: categoryName.trim(), type: categoryType }, 
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        } 
-      );
-
-      if (res.data === true) {
-        fetchCategories(); 
-        setCategoryName('');
-        setCategoryType('EXPENSE');
-      } else {
-        alert('Failed to add category.');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Error adding category.');
+      return JSON.parse(localStorage.getItem(getCategoryStorageKey(userId)) || '[]');
+    } catch {
+      return [];
     }
   };
-  
-  useEffect(() => {
-    fetchCategories();
+  const saveLocalCategories = (userId, items) => {
+    localStorage.setItem(getCategoryStorageKey(userId), JSON.stringify(items));
+  };
+
+  const fetchUser = useCallback(async () => {
+    if (!hasSupabase) {
+      setError('Supabase chưa được cấu hình.');
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user) {
+      setError(authError?.message || 'Không tìm thấy người dùng. Vui lòng đăng nhập lại.');
+      setLoading(false);
+      return;
+    }
+
+    setUser(authData.user);
   }, []);
 
-  // const handleDeleteCategory = (id) => {
-  //   setCategories(categories.filter((category) => category.id !== id));
-  // };
+  const fetchCategories = useCallback(async () => {
+    if (!user) return;
+    setLoading(true);
+
+    if (!hasSupabase) {
+      const localItems = loadLocalCategories(user.id);
+      setCategories(localItems);
+      setError('Supabase chưa được cấu hình. Đang sử dụng dữ liệu tạm thời.');
+      setFallbackMode(true);
+      setLoading(false);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if (error.message?.includes("Could not find the table")) {
+        const localItems = loadLocalCategories(user.id);
+        setCategories(localItems);
+        setFallbackMode(true);
+        setError('Không tìm thấy bảng categories trên Supabase. Đang sử dụng dữ liệu local.');
+        setLoading(false);
+        return;
+      }
+      setError(error.message || 'Failed to load categories.');
+      setCategories([]);
+    } else {
+      setCategories(data || []);
+      saveLocalCategories(user.id, data || []);
+      setError('');
+    }
+    setLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  useEffect(() => {
+    if (user) {
+      fetchCategories();
+    }
+  }, [user, fetchCategories]);
+
+  if (!hasSupabase) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
+        <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
+          <h1 className="text-3xl font-bold mb-4">Supabase chưa cấu hình</h1>
+          <p className="text-slate-600">Vui lòng thêm VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY để quản lý danh mục.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user && !loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
+        <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
+          <h1 className="text-3xl font-bold mb-4">Yêu cầu đăng nhập</h1>
+          <p className="text-slate-600">Vui lòng đăng nhập để xem và quản lý danh mục của bạn.</p>
+          {error ? <p className="mt-4 text-sm text-rose-600">{error}</p> : null}
+        </div>
+      </div>
+    );
+  }
+
+  const handleAddCategory = async () => {
+    if (!categoryName.trim()) {
+      setError('Please enter a category name');
+      return;
+    }
+
+    if (!user) {
+      setError('Please login first to add a category.');
+      return;
+    }
+
+    if (fallbackMode || !hasSupabase) {
+      const newCategory = {
+        id: `local-${Date.now()}`,
+        name: categoryName.trim(),
+        type: categoryType,
+        user_id: user.id,
+        created_at: new Date().toISOString(),
+      };
+      const nextCategories = [newCategory, ...categories];
+      setCategories(nextCategories);
+      saveLocalCategories(user.id, nextCategories);
+      setCategoryName('');
+      setCategoryType('EXPENSE');
+      setError('Đã lưu danh mục cục bộ do Supabase không khả dụng.');
+      return;
+    }
+
+    const { error } = await supabase.from('categories').insert([
+      {
+        name: categoryName.trim(),
+        type: categoryType,
+        user_id: user.id,
+      },
+    ]);
+
+    if (error) {
+      if (error.message?.includes("Could not find the table")) {
+        setFallbackMode(true);
+        handleAddCategory();
+        return;
+      }
+      setError(error.message || 'Error adding category');
+      return;
+    }
+
+    setCategoryName('');
+    setCategoryType('EXPENSE');
+    fetchCategories();
+  };
 
   const handleDeleteCategory = async (id) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/categories/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      setCategories(categories.filter((c) => c.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert('Error deleting category.');
+    if (!user) {
+      setError('Please login first.');
+      return;
+    }
+
+    if (fallbackMode || !hasSupabase) {
+      const nextCategories = categories.filter((c) => c.id !== id);
+      setCategories(nextCategories);
+      saveLocalCategories(user.id, nextCategories);
+      return;
+    }
+
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      if (error.message?.includes("Could not find the table")) {
+        setFallbackMode(true);
+        handleDeleteCategory(id);
+        return;
+      }
+      setError(error.message || 'Error deleting category');
+    } else {
+      const nextCategories = categories.filter((c) => c.id !== id);
+      setCategories(nextCategories);
+      saveLocalCategories(user.id, nextCategories);
     }
   };
 
-   // Start editing
   const handleEditClick = (category) => {
     setEditingId(category.id);
     setEditName(category.name);
     setEditType(category.type);
   };
 
-  // Cancel editing
   const handleCancelEdit = () => {
     setEditingId(null);
-    setEditName("");
-    setEditType("EXPENSE");
+    setEditName('');
+    setEditType('EXPENSE');
   };
 
-  // Update Category (PUT API)
   const handleUpdateCategory = async () => {
     if (!editName.trim()) {
-      alert("Category name cannot be empty!");
+      setError('Category name cannot be empty!');
       return;
     }
 
-    try {
-      const res = await axios.put(
-        `http://localhost:8080/api/categories/${editingId}`,
-        { name: editName.trim(), type: editType },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+    if (!user) {
+      setError('Please login first.');
+      return;
+    }
 
-      if (res.status === 200) {
-        await fetchCategories();
-        handleCancelEdit();
-      } else {
-        alert("Failed to update category.");
+    if (fallbackMode || !hasSupabase) {
+      const nextCategories = categories.map((category) =>
+        category.id === editingId ? { ...category, name: editName.trim(), type: editType } : category
+      );
+      setCategories(nextCategories);
+      saveLocalCategories(user.id, nextCategories);
+      handleCancelEdit();
+      return;
+    }
+
+    const { error } = await supabase
+      .from('categories')
+      .update({ name: editName.trim(), type: editType })
+      .eq('id', editingId)
+      .eq('user_id', user.id);
+
+    if (error) {
+      if (error.message?.includes("Could not find the table")) {
+        setFallbackMode(true);
+        handleUpdateCategory();
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      alert("Error updating category.");
+      setError(error.message || 'Error updating category.');
+    } else {
+      await fetchCategories();
+      handleCancelEdit();
     }
   };
+
   return (
-    <div className="p-8">
-      <header className="flex justify-between items-center mb-8">
-         <h1 className="text-3xl font-bold ml-4 text-green-500 dark:text-green-400">
-             Category Management
-          </h1>
+    <div className="p-4 sm:p-8">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold text-slate-900">Category Management</h1>
+        <p className="mt-2 text-slate-500">Create, edit, and organize your income and expense categories.</p>
       </header>
+      {loading && !user ? (
+        <div className="rounded-[2rem] bg-white p-8 shadow-xl text-center text-slate-600">Loading categories...</div>
+      ) : null}
 
-      {/* Form Add Category */}
-      <div className="bg-white p-6 rounded-lg shadow-md mb-6">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">Add Category</h2>
-        <div className="mb-4">
-          <label htmlFor="categoryName" className="block text-sm text-gray-600">Category Name</label>
-          <input
-            type="text"
-            id="categoryName"
-            className="w-full p-2 border rounded-md mt-1"
-            value={categoryName}
-            onChange={(e) => setCategoryName(e.target.value)}
-            placeholder="Enter category name"
-          />
-        </div>
-        <div className="mb-4">
-          <label htmlFor="categoryType" className="block text-sm text-gray-600">Category Type</label>
-          <select
-            id="categoryType"
-            className="w-full p-2 border rounded-md mt-1"
-            value={categoryType}
-            onChange={(e) => setCategoryType(e.target.value)}
-          >
-            <option value="EXPENSE">Expense</option>
-            <option value="INCOME">Income</option>
-          </select>
-        </div>
-        <button
-          className="w-full bg-blue-500 text-white py-2 rounded-md hover:bg-blue-600"
-          onClick={handleAddCategory}
-        >
-          Add Category
-        </button>
-      </div>
-
-      {/* List Categories */}
-    
-        {/* <div className="bg-white p-6 rounded-lg shadow-md">
-           <h2 className="text-lg font-semibold text-gray-700 mb-4">List Categories</h2>
-          {loading ? (
-              <p>Loading categories...</p>
-            ) : error ? (
-              <p className="text-red-500">{error}</p>
-            ) : (
-              <div className="space-y-4">
-                {categories.map((category) => (
-                  <div
-                    key={category.id}
-                    className="flex justify-between items-center p-4 bg-gray-50 rounded-lg shadow-md"
-                  >
-                    <div>
-                      <p className="font-semibold text-gray-800">{category.name}</p>
-                      <p className="text-sm text-gray-500">{category.type}</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        className="text-yellow-500 hover:text-yellow-700 text-sm"
-                        onClick={() => alert(`Edit category ${category.name}`)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="text-red-500 hover:text-red-700 text-sm"
-                        onClick={() => handleDeleteCategory(category.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>  */}
-        <div className="bg-white p-6 rounded-lg shadow-md">
-        <h2 className="text-lg font-semibold text-gray-700 mb-4">List Categories</h2>
-
-        {loading ? (
-          <p>Loading categories...</p>
-        ) : error ? (
-          <p className="text-red-500">{error}</p>
-        ) : categories.length === 0 ? (
-          <p className="text-gray-500">No categories found.</p>
-        ) : (
+      <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
+        <section className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/70">
+          <h2 className="text-xl font-semibold text-slate-900 mb-4">Add Category</h2>
           <div className="space-y-4">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                className="p-4 bg-gray-50 rounded-lg shadow-md flex justify-between items-center"
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Category Name</label>
+              <input
+                type="text"
+                value={categoryName}
+                onChange={(e) => setCategoryName(e.target.value)}
+                placeholder="Enter category name"
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700">Category Type</label>
+              <select
+                value={categoryType}
+                onChange={(e) => setCategoryType(e.target.value)}
+                className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               >
-                {editingId === category.id ? (
-
-                  // Edit Mode
-                  <div className="flex-1">
-                    <input
-                      type="text"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      className="border p-1 rounded mr-2"
-                    />
-                    <select
-                      value={editType}
-                      onChange={(e) => setEditType(e.target.value)}
-                      className="border p-1 rounded mr-2"
-                    >
-                      <option value="EXPENSE">Expense</option>
-                      <option value="INCOME">Income</option>
-                    </select>
-                    <button
-                      className="bg-green-500 text-white px-3 py-1 rounded mr-2 hover:bg-green-600"
-                      onClick={handleUpdateCategory}
-                    >
-                      Save
-                    </button>
-                    <button
-                      className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-500"
-                      onClick={handleCancelEdit}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  // View Mode
-                  <>
-                    <div>
-                      <p className="font-semibold text-gray-800">{category.name}</p>
-                      <p className="text-sm text-gray-500">{category.type}</p>
-                    </div>
-                    <div className="flex space-x-2">
-                      <button
-                        className="text-yellow-500 hover:text-yellow-700 text-sm"
-                        onClick={() => handleEditClick(category)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="text-red-500 hover:text-red-700 text-sm"
-                        onClick={() => handleDeleteCategory(category.id)}
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ))}
+                <option value="EXPENSE">Expense</option>
+                <option value="INCOME">Income</option>
+              </select>
+            </div>
+            {error && <p className="text-sm text-rose-600">{error}</p>}
+            <button
+              onClick={handleAddCategory}
+              className="inline-flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:scale-[1.01]"
+            >
+              Add Category
+            </button>
           </div>
-        )}
+        </section>
+
+        <section className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/70">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-slate-900">Your Categories</h2>
+            <span className="text-sm text-slate-500">{categories.length} items</span>
+          </div>
+          {loading ? (
+            <p className="text-slate-600">Loading categories...</p>
+          ) : categories.length === 0 ? (
+            <p className="text-slate-500">No categories yet. Start by adding a category.</p>
+          ) : (
+            <div className="space-y-4">
+              {categories.map((category) => (
+                <div key={category.id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+                  {editingId === category.id ? (
+                    <div className="space-y-3">
+                      <input
+                        value={editName}
+                        onChange={(e) => setEditName(e.target.value)}
+                        className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 outline-none"
+                      />
+                      <select
+                        value={editType}
+                        onChange={(e) => setEditType(e.target.value)}
+                        className="w-full rounded-3xl border border-slate-300 bg-white px-4 py-3 outline-none"
+                      >
+                        <option value="EXPENSE">Expense</option>
+                        <option value="INCOME">Income</option>
+                      </select>
+                      <div className="flex gap-3">
+                        <button onClick={handleUpdateCategory} className="rounded-3xl bg-emerald-500 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-600">
+                          Save
+                        </button>
+                        <button onClick={handleCancelEdit} className="rounded-3xl bg-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-300">
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-4">
+                      <div>
+                        <p className="text-base font-semibold text-slate-900">{category.name}</p>
+                        <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${category.type === 'INCOME' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
+                          {category.type}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm font-medium text-slate-600">
+                        <button onClick={() => handleEditClick(category)} className="transition hover:text-sky-600">
+                          Edit
+                        </button>
+                        <button onClick={() => handleDeleteCategory(category.id)} className="text-rose-600 transition hover:text-rose-700">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
-     );
+  );
 };
 
 export default Categories;

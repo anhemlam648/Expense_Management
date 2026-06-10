@@ -1,9 +1,8 @@
 import React from 'react';
-import '../Footer/Style.css'; 
 
 const Footer = () => {
   return (
-    <footer className="footer">
+    <footer className="mt-6 w-full bg-white/80 px-6 py-4 text-center text-sm text-slate-500 shadow-inner shadow-slate-300/20">
       © {new Date().getFullYear()} Vu Trung Nghia. All rights reserved.
     </footer>
   );

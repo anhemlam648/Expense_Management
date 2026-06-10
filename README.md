@@ -31,3 +31,46 @@ We recommend using [nvm-windows](https://github.com/coreybutler/nvm-windows/rele
 ```powershell
 nvm install 22.12.0
 nvm use 22.12.0
+```
+
+## 🚀 Run the project
+
+```powershell
+npm install
+npm run dev
+```
+## 🌐 Supabase configuration
+
+This project uses Supabase for authentication, profiles, categories, and transactions.
+
+Create a `.env` file in `react-frontend`:
+
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+VITE_API_BASE_URL=http://localhost:8080
+```
+
+> The frontend cannot create Supabase tables automatically. You must create the required tables in Supabase before using the app in production.
+
+### Required Supabase tables
+
+The app expects the following tables:
+
+- `profiles`
+- `categories`
+- `transactions`
+
+A ready-to-run schema is available in `supabase-schema.sql`.
+
+## 🌐 Backend API configuration
+
+The frontend also uses `VITE_API_BASE_URL` to call backend APIs.
+
+Create a `.env` file in `react-frontend`:
+
+```env
+VITE_SUPABASE_URL=https://your-project-ref.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-public-key
+VITE_API_BASE_URL=http://localhost:8080
+```
