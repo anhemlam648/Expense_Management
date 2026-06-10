@@ -112,7 +112,7 @@ const Settings = () => {
     }
 
     if (newPassword && !currentPassword) {
-      setMessage('Vui lòng nhập mật khẩu cũ để cập nhật mật khẩu mới.');
+      setMessage('Please enter your old password to update your new password.');
       return;
     }
 
@@ -261,7 +261,7 @@ const Settings = () => {
               <div className="space-y-6">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700">Tên hiện tại</label>
+                    <label className="block text-sm font-semibold text-slate-700">Current name</label>
                     <div className="mt-2 rounded-3xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700">
                       {username || 'N/A'}
                     </div>
@@ -279,7 +279,7 @@ const Settings = () => {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700">Đơn vị tiền tệ</label>
+                    <label className="block text-sm font-semibold text-slate-700">Currency</label>
                     <select
                       value={currency}
                       onChange={(e) => updateCurrency(e.target.value)}
@@ -296,7 +296,7 @@ const Settings = () => {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700">Tên mới (nếu muốn thay đổi)</label>
+                    <label className="block text-sm font-semibold text-slate-700">New Username (Optional)</label>
                     <input
                       type="text"
                       value={username}
@@ -310,7 +310,7 @@ const Settings = () => {
 
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700">Nhập khẩu hiện tại</label>
+                    <label className="block text-sm font-semibold text-slate-700">Current Password</label>
                     <div className="relative mt-2">
                       <input
                         type={showCurrentPassword ? 'text' : 'password'}
@@ -327,11 +327,11 @@ const Settings = () => {
                         {showCurrentPassword ? 'Ẩn' : 'Hiện'}
                       </button>
                     </div>
-                    <p className="mt-2 text-sm text-slate-500">Nhập mật khẩu cũ để xác thực trước khi đổi mật khẩu mới.</p>
+                    <p className="mt-2 text-sm text-slate-500">Enter your current password to verify your identity before changing your password.</p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700">Mật khẩu mới</label>
+                    <label className="block text-sm font-semibold text-slate-700">New Password</label>
                     <div className="relative mt-2">
                       <input
                         type={showNewPassword ? 'text' : 'password'}
@@ -348,18 +348,18 @@ const Settings = () => {
                         {showNewPassword ? 'Ẩn' : 'Hiện'}
                       </button>
                     </div>
-                    <p className="mt-2 text-sm text-slate-500">Nhập mật khẩu mới nếu bạn muốn cập nhật.</p>
+                    <p className="mt-2 text-sm text-slate-500">Enter your new password if you want to update it.</p>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700">Số dư ví hiện tại</label>
+                  <label className="block text-sm font-semibold text-slate-700">Current Wallet Balance</label>
                   <div className="mt-2 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900">
                     ${currentBalance.toLocaleString()}
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700">Cập nhật số dư</label>
+                  <label className="block text-sm font-semibold text-slate-700">Update Balance</label>
                   <div className="mt-2 grid gap-3 sm:grid-cols-[1fr_auto]">
                     <input
                       type="number"
@@ -375,12 +375,12 @@ const Settings = () => {
                       onChange={(e) => setBalanceAction(e.target.value)}
                       className="rounded-3xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
                     >
-                      <option value="add">Cộng thêm</option>
-                      <option value="set">Gán giá trị mới</option>
+                      <option value="add">Add Amount</option>
+                      <option value="set">Set New Value</option>
                     </select>
                   </div>
                   <p className="mt-2 text-sm text-slate-500">
-                    Nếu chọn “Cộng thêm”, số tiền sẽ được cộng vào số dư hiện tại. Nếu chọn “Gán giá trị mới”, số dư sẽ được đặt lại.
+                    If you select "Add Amount", the specified amount will be added to your current balance. If you select "Set New Value", your balance will be updated to the specified amount.
                   </p>
                 </div>
               </div>

@@ -180,15 +180,15 @@ const Home = () => {
           <h1 className="mt-4 text-4xl font-extrabold">Manage your money with clarity</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-100/90">A modern expense tracker with quick insights, smart category control, and trend analytics for your finances.</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">Starting Wallet</p>
+            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl h-32 flex flex-col justify-center">
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">Wallet</p>
               <p className="mt-3 text-3xl font-semibold">${walletBalance.toLocaleString()}</p>
             </div>
-            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl">
+            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl h-32 flex flex-col justify-center">
               <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">Expenses</p>
-              <p className="mt-3 text-3xl font-semibold">${totalExpenses.toLocaleString()}</p>
+              <p className="mt-4 text-3xl font-semibold">${totalExpenses.toLocaleString()}</p>
             </div>
-            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl">
+            <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl h-32 flex flex-col justify-center">
               <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">Wallet Balance</p>
               <p className={`mt-3 text-3xl font-semibold ${balanceSignClass}`}>${currentBalance.toLocaleString()}</p>
             </div>
@@ -213,25 +213,27 @@ const Home = () => {
 
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr] mb-6">
         <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">Expense vs Income</h2>
-            <Doughnut data={incomeExpensesChart} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">Expense vs Income</h2>
+            <div style={{ height: '200px' }}>
+              <Doughnut data={incomeExpensesChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }} />
+            </div>
         </div>
 
         <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Expenses by Category</h2>
-          <div className="h-[320px]">
-            <Doughnut data={expenseByCategoryData} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">Expenses by Category</h2>
+          <div style={{ height: '200px' }}>
+            <Doughnut data={expenseByCategoryData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }} />
           </div>
         </div>
       </section>
 
       <section className="rounded-[2rem] bg-white p-6 shadow-xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <h2 className="text-xl font-semibold text-slate-900">Monthly Trend</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Monthly Trend</h2>
           <p className="text-sm text-slate-500">Based on your recorded transactions</p>
         </div>
-        <div className="h-[380px]">
-          <Bar data={monthlyChartData} options={{ responsive: true, plugins: { legend: { position: 'top' }, title: { display: false } }, scales: { y: { beginAtZero: true } } }} />
+        <div style={{ height: '250px' }}>
+          <Bar data={monthlyChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } }, title: { display: false } }, scales: { y: { beginAtZero: true } } }} />
         </div>
       </section>
     </main>

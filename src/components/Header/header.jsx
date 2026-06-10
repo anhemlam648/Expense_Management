@@ -72,19 +72,6 @@ const Header = () => {
           })}
         </nav>
       </div>
-
-      <div className="mt-auto">
-        <button
-          onClick={() => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            navigate('/login');
-          }}
-          className="w-full rounded-3xl bg-rose-500 px-4 py-3 text-sm font-semibold text-white transition hover:bg-rose-600"
-        >
-          Logout
-        </button>
-      </div>
     </aside>
   );
 };
