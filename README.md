@@ -75,5 +75,5 @@ VITE_SUPABASE_ANON_KEY=your-anon-public-key
 VITE_API_BASE_URL=http://localhost:8080
 ```
 ```link
-After verifying your email, please reopen the application using this link
+After verifying your email, please reopen the application using this link: /login
 ```
