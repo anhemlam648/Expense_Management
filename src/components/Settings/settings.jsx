@@ -1,58 +1,118 @@
-import React, { useEffect, useState} from "react";
-// import { useContext } from "react";
-import axios from "axios";
-// import { ThemeContext } from "../ThemeContext/themecontext";
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import { supabase, hasSupabase } from '../../lib/supabase';
+import { useCurrency, CURRENCIES } from '../../context/CurrencyContext';
 
 const Settings = () => {
-  const token = localStorage.getItem("token");
-  const [user, setUser] = useState(null);
-  const [username, setUsername] = useState("");
-  // const { theme, setTheme } = useContext(ThemeContext); 
-  // const [selectedTheme, setSelectedTheme] = useState(theme); 
+  const navigate = useNavigate();
+  const { currency, updateCurrency } = useCurrency();
+  const [profile, setProfile] = useState(null);
+  const [username, setUsername] = useState('');
+  const [currentBalance, setCurrentBalance] = useState(0);
+  const [balanceInput, setBalanceInput] = useState('');
+  const [balanceAction, setBalanceAction] = useState('add');
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [avatarData, setAvatarData] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const [message, setMessage] = useState(null);
 
-// Fetch user profile
   useEffect(() => {
     const fetchUserProfile = async () => {
-      try {
-        const res = await axios.get("http://localhost:8080/api/user/profile", {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const savedBalance = savedUser.balance ?? 0;
+      const savedAvatar = savedUser.avatar || '';
+      const savedUsername = savedUser.username || '';
+
+      if (!hasSupabase) {
+        setProfile({
+          id: null,
+          email: savedUser.email || '',
+          username: savedUsername,
         });
-        setUser(res.data);
-        setUsername(res.data.username || "");
-      } catch (error) {
-        console.error("Failed to load user profile:", error);
+        setUsername(savedUsername);
+        setCurrentBalance(Number(savedBalance));
+        setBalanceInput('');
+        setAvatarPreview(savedAvatar);
+        setAvatarData(savedAvatar);
+        setLoadingProfile(false);
+        return;
       }
+
+      setLoadingProfile(true);
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError || !authData?.user) {
+        console.error('Failed to load auth user:', authError);
+        setLoadingProfile(false);
+        return;
+      }
+
+      const metadata = authData.user.user_metadata || {};
+  
+      const userBalance = Number(metadata.balance ?? savedBalance ?? 0);
+      const userAvatar = metadata.avatar_url || metadata.avatar || savedAvatar;
+      const usernameValue =
+          metadata.username ||
+          savedUsername ||
+          authData.user.email?.split('@')[0] ||
+          'User';
+      setProfile({
+        id: authData.user.id,
+        email: authData.user.email,
+        username: usernameValue,
+      });
+      setUsername(usernameValue);
+      setCurrentBalance(userBalance);
+      setBalanceInput('');
+      setAvatarPreview(userAvatar);
+      setAvatarData(userAvatar);
+      setLoadingProfile(false);
     };
 
-    if (token) {
-      fetchUserProfile();
-    }
-  }, [token]);
+    fetchUserProfile();
+  }, []);
 
-
-  // useEffect(() => {
-  //   setSelectedTheme(theme);
-  // }, [theme]);
-
-  // Avatar initials
   const getInitial = () => {
-    if (user?.email && user.email.trim().length > 0) {
-      return user.email.charAt(0).toUpperCase();
+    if (profile?.username) {
+      return profile.username.charAt(0).toUpperCase();
     }
-    return "U";
+    if (profile?.email) {
+      return profile.email.charAt(0).toUpperCase();
+    }
+    return 'U';
   };
 
-  // const handleThemeChange = (e) => {
-  //   setSelectedTheme(e.target.value);
-  // };
+  const handleAvatarUpload = (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setAvatarPreview(e.target.result);
+      setAvatarData(e.target.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   const handleSave = async () => {
     if (!username.trim()) {
-      setMessage("Username cannot be empty.");
+      setMessage('Username cannot be empty.');
+      return;
+    }
+
+    if (newPassword && !currentPassword) {
+      setMessage('Vui lòng nhập mật khẩu cũ để cập nhật mật khẩu mới.');
       return;
     }
 
@@ -60,172 +120,296 @@ const Settings = () => {
     setMessage(null);
 
     try {
-      const res = await axios.put(
-        "http://localhost:8080/api/user/update/profile",
-        { username: username.trim() },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      if (newPassword) {
+        const { error: verifyError } = await supabase.auth.signInWithPassword({
+          username: profile.username,
+          email: profile.email,
+          password: currentPassword,
+        });
+        if (verifyError) {
+          throw new Error('Old password is incorrect.');
         }
+      }
+
+      const amountValue = Number(balanceInput || 0);
+      let nextBalance = currentBalance;
+
+      if (balanceInput !== '') {
+        if (Number.isNaN(amountValue) || amountValue < 0) {
+          throw new Error('Please enter a valid non-negative balance amount.');
+        }
+
+        if (balanceAction === 'add') {
+          nextBalance += amountValue;
+        } else {
+          nextBalance = amountValue;
+        }
+      }
+
+      const metadata = {
+        username: username.trim(),
+        balance: nextBalance,
+      };
+      if (avatarData) metadata.avatar_url = avatarData;
+
+      const authUpdate = await supabase.auth.updateUser({
+        password: newPassword || undefined,
+        data: metadata,
+      });
+
+      if (authUpdate.error) {
+        throw new Error(authUpdate.error.message || 'Failed to update auth information.');
+      }
+
+      const updatedProfile = { ...profile, username: username.trim() };
+      setProfile(updatedProfile);
+      setCurrentBalance(nextBalance);
+      setBalanceInput('');
+      const currentStorage = JSON.parse(localStorage.getItem('user') || '{}');
+      localStorage.setItem(
+        'user',
+        JSON.stringify({
+          ...currentStorage,
+          id: profile?.id,
+          email: profile?.email,
+          username: username.trim(),
+          balance: nextBalance,
+          avatar: avatarData || currentStorage.avatar || '',
+        })
       );
-
-      setUser(res.data);
-      setMessage("Settings saved successfully!");
-
-      // setTheme(selectedTheme);
+      setCurrentPassword('');
+      setNewPassword('');
+      setMessage('Settings saved successfully!');
     } catch (error) {
-      setMessage(
-        error.response?.data || "Failed to save settings. Please try again."
-      );
+      setMessage(error.message || 'Failed to save settings. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  // const handleSave = async () => {
-  //     setTheme(selectedTheme); //Test
-  //     setLoading(false);
-  //     setMessage("Settings saved successfully!");
-  // };
+  if (!hasSupabase) {
+    return (
+      <div className="flex-1 min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900">
+        <div className="max-w-3xl mx-auto w-full text-center">
+          <div className="rounded-[2rem] bg-white p-10 shadow-xl">
+            <h1 className="text-3xl font-bold text-slate-900">Supabase is not configured</h1>
+            <p className="mt-4 text-slate-600">Please add environment variables VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to load profile information.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingProfile) {
+    return (
+      <div className="flex-1 min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900">
+        <div className="max-w-3xl mx-auto w-full text-center">
+          <div className="rounded-[2rem] bg-white p-10 shadow-xl">
+            <p className="text-slate-600">Loading profile information...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex-1 min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900">
+        <div className="max-w-3xl mx-auto w-full text-center">
+          <div className="rounded-[2rem] bg-white p-10 shadow-xl">
+            <h1 className="text-3xl font-bold text-slate-900">Please log in</h1>
+            <p className="mt-4 text-slate-600">User information not found. Please log in again to continue.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div
-      // className={`flex-1 min-h-screen py-8 px-4 sm:px-6 lg:px-8 ${
-      //   theme === "dark"
-      //     ? "bg-gray-900 text-white"
-      //     : "bg-gray-100 text-gray-900"
-      // }`}
-      className="flex-1 min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-gray-100 text-gray-900"
-    >
+    <div className="flex-1 min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-slate-50 text-slate-900">
       <div className="max-w-3xl mx-auto w-full">
         <header className="mb-10 text-center">
-          <h1 className="text-3xl font-bold ml-4 text-green-500 dark:text-green-400">
-            Profile Settings
-          </h1>
-          <p
-            // className={`mt-2 text-sm sm:text-base ${
-            //   theme === "dark" ? "text-gray-300" : "text-gray-500"
-            // }`}
-             className="mt-2 text-sm sm:text-base text-gray-500"
-          >
+          <h1 className="text-3xl font-bold text-slate-900">Profile Settings</h1>
+          <p className="mt-2 text-sm sm:text-base text-slate-500">
             Manage your profile and preferences
           </p>
         </header>
 
-        {/* Profile Section */}
-        {user ? (
-          <section
-            // className={`p-6 sm:p-8 rounded-xl shadow-md mb-8 ${
-            //   theme === "dark" ? "bg-gray-800" : "bg-white"
-            // }`}
-            className="p-6 sm:p-8 rounded-xl shadow-md mb-8 bg-white"
-          >
-            <div className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-br from-teal-400 to-teal-600 text-white rounded-full shadow-lg flex items-center justify-center text-3xl sm:text-4xl font-bold mb-4">
-                {getInitial()}
-              </div>  
+        {profile ? (
+          <section className="p-6 sm:p-8 rounded-3xl shadow-xl bg-white">
+            <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-6 text-center">
+                <div className="mx-auto mb-4 h-28 w-28 overflow-hidden rounded-full bg-white shadow-xl">
+                  {avatarPreview ? (
+                    <img src={avatarPreview} alt="Profile" className="h-full w-full object-cover" />
+                  ) : (
+                    <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-sky-500 to-teal-500 text-4xl font-bold text-white">
+                      {getInitial()}
+                    </div>
+                  )}
+                </div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">Profile photo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleAvatarUpload}
+                  className="mx-auto block w-full cursor-pointer rounded-3xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 shadow-sm transition hover:border-slate-300"
+                />
+                <p className="mt-4 text-sm text-slate-500">Hình ảnh này sẽ hiển thị trong phần profile của bạn.</p>
+              </div>
 
-              {/* Editable username */}
-            <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                // className={`text-xl sm:text-2xl font-semibold border-b-2 focus:outline-none px-1 mb-2 text-center w-full max-w-xs ${
-                //   theme === "dark"
-                //     ? "text-white border-teal-400 bg-gray-900"
-                //     : "text-gray-800 border-teal-600 bg-white"
-                // }`}
-                className="text-xl sm:text-2xl font-semibold border-b-2 focus:outline-none px-1 mb-2 text-center w-full max-w-xs text-gray-800 border-teal-600 bg-white"
-                placeholder="Enter your username"
-              />
+              <div className="space-y-6">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700">Tên hiện tại</label>
+                    <div className="mt-2 rounded-3xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-700">
+                      {username || 'N/A'}
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700">Email</label>
+                    <input
+                      type="email"
+                      value={profile.email}
+                      disabled
+                      className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-100 px-4 py-3 text-slate-500 outline-none"
+                    />
+                  </div>
+                </div>
 
-              {/* <p
-                className={`text-sm sm:text-base ${
-                  theme === "dark" ? "text-gray-300" : "text-gray-500"
-                }`}
-              > */}
-              <p className="text-sm sm:text-base text-gray-500">
-                {user.email}
-              </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700">Đơn vị tiền tệ</label>
+                    <select
+                      value={currency}
+                      onChange={(e) => updateCurrency(e.target.value)}
+                      className="mt-2 w-full rounded-3xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                    >
+                      {Object.entries(CURRENCIES).map(([code, data]) => (
+                        <option key={code} value={code}>
+                          {data.symbol} {data.code} - {data.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700">Tên mới (nếu muốn thay đổi)</label>
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="mt-2 w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                      placeholder="Nhập tên mới"
+                    />
+                  </div>
+                  <div />
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700">Nhập khẩu hiện tại</label>
+                    <div className="relative mt-2">
+                      <input
+                        type={showCurrentPassword ? 'text' : 'password'}
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 pr-24 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                        placeholder="Nhập mật khẩu cũ"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword((prev) => !prev)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm"
+                      >
+                        {showCurrentPassword ? 'Ẩn' : 'Hiện'}
+                      </button>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-500">Nhập mật khẩu cũ để xác thực trước khi đổi mật khẩu mới.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700">Mật khẩu mới</label>
+                    <div className="relative mt-2">
+                      <input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 pr-24 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                        placeholder="Nhập mật khẩu mới"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword((prev) => !prev)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-600 shadow-sm"
+                      >
+                        {showNewPassword ? 'Ẩn' : 'Hiện'}
+                      </button>
+                    </div>
+                    <p className="mt-2 text-sm text-slate-500">Nhập mật khẩu mới nếu bạn muốn cập nhật.</p>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700">Số dư ví hiện tại</label>
+                  <div className="mt-2 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900">
+                    ${currentBalance.toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-slate-700">Cập nhật số dư</label>
+                  <div className="mt-2 grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={balanceInput}
+                      onChange={(e) => setBalanceInput(e.target.value)}
+                      className="w-full rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                      placeholder="Nhập số tiền"
+                    />
+                    <select
+                      value={balanceAction}
+                      onChange={(e) => setBalanceAction(e.target.value)}
+                      className="rounded-3xl border border-slate-200 bg-white px-4 py-3 text-slate-900 outline-none transition focus:border-sky-500 focus:ring-4 focus:ring-sky-100"
+                    >
+                      <option value="add">Cộng thêm</option>
+                      <option value="set">Gán giá trị mới</option>
+                    </select>
+                  </div>
+                  <p className="mt-2 text-sm text-slate-500">
+                    Nếu chọn “Cộng thêm”, số tiền sẽ được cộng vào số dư hiện tại. Nếu chọn “Gán giá trị mới”, số dư sẽ được đặt lại.
+                  </p>
+                </div>
+              </div>
             </div>
           </section>
         ) : (
-          <p className="text-center text-gray-500 mb-8">Loading profile...</p>
-        )}  
+          <p className="text-center text-slate-500 mb-8">Loading profile...</p>
+        )}
 
-        {/* Theme Settings */}
-        {/* <section
-          className={`p-6 rounded-xl shadow mb-8 ${
-            theme === "dark" ? "bg-gray-800" : "bg-white"
-          }`}
-        >
-          <h4
-            className={`text-lg font-bold mb-4 ${
-              theme === "dark" ? "text-white" : "text-gray-800"
-            }`}
-          >
-            Theme Preference
-          </h4>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-3 sm:space-y-0 sm:space-x-8">
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="theme"
-                value="light"
-                checked={selectedTheme === "light"}
-                onChange={handleThemeChange}
-                className="text-teal-600 focus:ring-teal-500"
-              />
-              <span
-                className={`${
-                  theme === "dark" ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                Light Mode
-              </span>
-            </label>
-            <label className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name="theme"
-                value="dark"
-                checked={selectedTheme === "dark"}
-                onChange={handleThemeChange}
-                className="text-teal-600 focus:ring-teal-500"
-              />
-              <span
-                className={`${
-                  theme === "dark" ? "text-gray-300" : "text-gray-600"
-                }`}
-              >
-                Dark Mode
-              </span>
-            </label>
-          </div>
-        </section> */}
-
-        {/* Save Button */}
-        <div className="text-center">
+        <div className="mt-8 flex flex-col gap-4 sm:flex-row sm:justify-center">
           <button
             onClick={handleSave}
             disabled={loading}
-            className="inline-block bg-teal-600 hover:bg-teal-700 text-white font-semibold px-6 py-3 rounded-lg shadow transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
+            className="flex-1 rounded-3xl bg-teal-600 px-6 py-3 text-white font-semibold shadow-lg transition hover:bg-teal-700 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {loading ? "Saving..." : "Save Settings"}
+            {loading ? 'Saving...' : 'Save Settings'}
           </button>
-          {message && (
-            <p
-              className={`mt-3 text-sm font-medium ${
-                message.toLowerCase().includes("success")
-                  ? "text-green-600"
-                  : "text-red-600"
-              }`}
-            >
-              {message}
-            </p>
-          )}
+          <button
+            onClick={handleLogout}
+            className="flex-1 rounded-3xl bg-rose-500 px-6 py-3 text-white font-semibold shadow-lg transition hover:bg-rose-600"
+          >
+            Logout
+          </button>
         </div>
+        {message && (
+          <p className={`mt-4 text-center text-sm font-medium ${message.toLowerCase().includes('success') ? 'text-emerald-600' : 'text-rose-600'}`}>
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );
