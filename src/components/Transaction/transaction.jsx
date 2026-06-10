@@ -242,6 +242,27 @@ const Transaction = () => {
     setOpenDetails(openDetails === id ? null : id);
   };
 
+  const handleDeleteTransaction = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
+
+    if (fallbackMode || !hasSupabase) {
+      const updatedTransactions = transactions.filter((t) => t.id !== id);
+      setTransactions(updatedTransactions);
+      saveLocalTransactions(user.id, updatedTransactions);
+      return;
+    }
+
+    const { error } = await supabase.from('transactions').delete().eq('id', id);
+
+    if (error) {
+      setError('Failed to delete transaction.');
+      return;
+    }
+
+    const newTransactions = await fetchTransactions(user.id);
+    setTransactions(newTransactions);
+  };
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">Loading...</div>;
   }
@@ -348,9 +369,17 @@ const Transaction = () => {
                   >
                     {isOpen ? 'Hide Details' : 'View Details'}
                   </button>
-                  <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
-                    {categoryInfo.name}
-                  </span>
+                  <div className="flex gap-2">
+                    <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
+                      {categoryInfo.name}
+                    </span>
+                    <button
+                      onClick={() => handleDeleteTransaction(t.id)}
+                      className="rounded-full bg-rose-100 px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-200"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
                 {isOpen && (
                   <div className="mt-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">

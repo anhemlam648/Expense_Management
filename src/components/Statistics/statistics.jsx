@@ -197,26 +197,28 @@ const Statistics = () => {
         </div>
       </section>
 
-      <section className="grid gap-6 xl:grid-cols-2 mb-6">
-        <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Monthly Spending Analysis</h2>
-          <div className="h-[360px]">
-            <Line data={monthlySpendingData} options={{ responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }} />
+      <section className="grid gap-6 md:grid-cols-2 mb-6">
+        <div className="rounded-[2rem] bg-white p-4 shadow-xl overflow-hidden">
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">Monthly Spending Analysis</h2>
+          <div style={{ height: '200px', width: '100%' }}>
+            <Line data={monthlySpendingData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } }, scales: { y: { beginAtZero: true } } }} />
           </div>
         </div>
 
-        <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">Quarterly Income vs Expense</h2>
-          <div className="h-[360px]">
-            <Bar data={quarterlyChartData} options={{ responsive: true, plugins: { legend: { position: 'top' } }, scales: { y: { beginAtZero: true } } }} />
+        <div className="rounded-[2rem] bg-white p-4 shadow-xl overflow-hidden">
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">Quarterly Income vs Expense</h2>
+          <div style={{ height: '200px', width: '100%' }}>
+            <Bar data={quarterlyChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } }, scales: { y: { beginAtZero: true } } }} />
           </div>
         </div>
       </section>
 
-      <section className="rounded-[2rem] bg-white p-6 shadow-xl">
-        <h2 className="text-xl font-semibold text-slate-900 mb-4">Expense Breakdown by Category</h2>
-        <div className="h-[360px]">
-          <Doughnut data={categorySpendingData} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
+      <section className="rounded-[2rem] bg-white p-4 shadow-xl overflow-hidden">
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">Expense Breakdown by Category</h2>
+        <div className="flex items-center justify-center">
+          <div style={{ width: '200px', height: '200px' }}>
+            <Doughnut data={categorySpendingData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 10 } } } }} />
+          </div>
         </div>
       </section>
     </main>
