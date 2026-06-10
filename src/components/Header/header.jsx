@@ -39,7 +39,7 @@ const Header = () => {
 
   try {
     user = JSON.parse(localStorage.getItem('user'));
-  } catch (err) {
+  } catch (userError) {
     user = null;
   }
 
