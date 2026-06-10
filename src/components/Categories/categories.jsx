@@ -95,8 +95,8 @@ const Categories = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
         <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
-          <h1 className="text-3xl font-bold mb-4">Supabase chưa cấu hình</h1>
-          <p className="text-slate-600">Vui lòng thêm VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY để quản lý danh mục.</p>
+          <h1 className="text-3xl font-bold mb-4">Supabase not configured</h1>
+          <p className="text-slate-600">Please add VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to manage categories.</p>
         </div>
       </div>
     );
@@ -106,8 +106,8 @@ const Categories = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
         <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
-          <h1 className="text-3xl font-bold mb-4">Yêu cầu đăng nhập</h1>
-          <p className="text-slate-600">Vui lòng đăng nhập để xem và quản lý danh mục của bạn.</p>
+          <h1 className="text-3xl font-bold mb-4">Login required</h1>
+          <p className="text-slate-600">Please login to view and manage your categories.</p>
           {error ? <p className="mt-4 text-sm text-rose-600">{error}</p> : null}
         </div>
       </div>
