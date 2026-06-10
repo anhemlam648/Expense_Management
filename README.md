@@ -74,5 +74,8 @@ VITE_SUPABASE_URL=https://your-project-ref.supabase.co
 VITE_SUPABASE_ANON_KEY=your-anon-public-key
 VITE_API_BASE_URL=http://localhost:8080
 ```
+<<<<<<< HEAD
 ```link
 After verifying your email, please reopen the application using this link
+=======
+>>>>>>> e07a092f928520bdd0eac9bb35dd6249b1b4e653
