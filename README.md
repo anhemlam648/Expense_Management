@@ -1,11 +1,11 @@
 This project provides a minimal setup for using **React** with **Vite**, including Hot Module Replacement (HMR) and ESLint configuration.
 
-## 🔧 Features
+## Features
 
-- ⚡️ Ultra-fast dev server powered by [Vite](https://vitejs.dev)
-- ♻️ Hot Module Replacement (HMR)
-- ✅ Preconfigured ESLint for clean code
-- 🔌 Support for:
+- Ultra-fast dev server powered by [Vite](https://vitejs.dev)
+- Hot Module Replacement (HMR)
+- Preconfigured ESLint for clean code
+- Support for:
   - [`@vitejs/plugin-react`](https://github.com/vitejs/vite-plugin-react) (uses Babel)
   - [`@vitejs/plugin-react-swc`](https://github.com/vitejs/vite-plugin-react-swc) (uses SWC)
 
@@ -33,13 +33,13 @@ nvm install 22.12.0
 nvm use 22.12.0
 ```
 
-## 🚀 Run the project
+## Run the project
 
 ```powershell
 npm install
 npm run dev
 ```
-## 🌐 Supabase configuration
+## Supabase configuration
 
 This project uses Supabase for authentication, profiles, categories, and transactions.
 
@@ -63,7 +63,7 @@ The app expects the following tables:
 
 A ready-to-run schema is available in `supabase-schema.sql`.
 
-## 🌐 Backend API configuration
+## Backend API configuration
 
 The frontend also uses `VITE_API_BASE_URL` to call backend APIs.
 
