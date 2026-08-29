@@ -7,17 +7,22 @@ const PrivateRoute = ({ children }) => {
   const [authenticated, setAuthenticated] = useState(false);
 
   useEffect(() => {
+    const storedToken = localStorage.getItem('token');
+    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
     if (!supabase) {
-      setAuthenticated(true);
+      setAuthenticated(Boolean(storedToken && storedUser?.id));
       setLoading(false);
       return;
     }
 
     const checkAuth = async () => {
       const { data } = await supabase.auth.getSession();
-      setAuthenticated(!!data.session);
+      const hasSession = Boolean(data.session || (storedToken && storedUser?.id));
+      setAuthenticated(hasSession);
       setLoading(false);
     };
+
     checkAuth();
   }, []);
 
@@ -29,7 +34,7 @@ const PrivateRoute = ({ children }) => {
     );
   }
 
-  return authenticated ? children : <Navigate to="/login" />;
+  return authenticated ? children : <Navigate to="/login" replace />;
 };
 
 export default PrivateRoute;

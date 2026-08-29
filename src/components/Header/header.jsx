@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const navItems = [
-  { label: 'Home', path: '/', icon: (
+  { label: 'Home', path: '/home', icon: (
       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9.75L12 3l9 6.75V21a1.5 1.5 0 01-1.5 1.5H4.5A1.5 1.5 0 013 21V9.75z" />
       </svg>
@@ -60,7 +60,16 @@ const Header = () => {
             return (
               <button
                 key={item.label}
-                onClick={() => navigate(item.path)}
+                onClick={() => {
+                  const hasUser = Boolean(localStorage.getItem('token') && JSON.parse(localStorage.getItem('user') || '{}')?.id);
+
+                  if (!hasUser) {
+                    navigate('/login');
+                    return;
+                  }
+
+                  navigate(item.path);
+                }}
                 className={`group flex w-full items-center gap-4 rounded-3xl px-4 py-4 text-left transition ${active ? 'bg-sky-600 text-white shadow-lg' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
               >
                 <span className={`grid h-11 w-11 place-items-center rounded-2xl ${active ? 'bg-white/15 text-white' : 'bg-slate-100 text-slate-600'}`}>

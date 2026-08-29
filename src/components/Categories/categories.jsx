@@ -26,21 +26,23 @@ const Categories = () => {
   };
 
   const fetchUser = useCallback(async () => {
+    const token = localStorage.getItem('token');
+    const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
     if (!hasSupabase) {
       setError('Supabase chưa được cấu hình.');
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    const { data: authData, error: authError } = await supabase.auth.getUser();
-    if (authError || !authData?.user) {
-      setError(authError?.message || 'Không tìm thấy người dùng. Vui lòng đăng nhập lại.');
+    if (!token || !savedUser?.id) {
+      setUser(null);
       setLoading(false);
       return;
     }
 
-    setUser(authData.user);
+    setUser({ id: savedUser.id, email: savedUser.email || '' });
+    setLoading(false);
   }, []);
 
   const fetchCategories = useCallback(async () => {

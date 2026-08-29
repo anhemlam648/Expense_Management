@@ -39,28 +39,41 @@ const Login = () => {
       const user = data.session.user;
       const profileResponse = await supabase
         .from('profiles')
-        .select('username,email')
+        .select('username,email,avatar_url,wallet_balance')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      const profile = profileResponse.data || { username: '', email: user.email };
+      const profile = profileResponse?.data || { username: '', email: user.email, wallet_balance: 0, avatar_url: '' };
       const metadata = user.user_metadata || {};
-      const balanceValue = Number(profile.balance ?? metadata.balance ?? 0);
+      const balanceValue = Number(
+        profile.wallet_balance ?? profile.balance ?? metadata.wallet_balance ?? metadata.balance ?? 0
+      );
       const avatarValue = profile.avatar_url || metadata.avatar_url || metadata.avatar || '';
       const usernameValue = profile.username || metadata.username || '';
+
+      const nextProfile = {
+        id: user.id,
+        email: user.email,
+        username: usernameValue || user.email.split('@')[0],
+        wallet_balance: balanceValue,
+        avatar_url: avatarValue,
+      };
+
+      await supabase.from('profiles').upsert(nextProfile, { onConflict: 'id' });
 
       localStorage.setItem(
         'user',
         JSON.stringify({
           id: user.id,
           email: user.email,
-          username: usernameValue,
+          username: usernameValue || user.email.split('@')[0],
           balance: balanceValue,
+          wallet_balance: balanceValue,
           avatar: avatarValue,
         })
       );
       localStorage.setItem('token', data.session.access_token);
-      navigate('/');
+      navigate('/home', { replace: true });
     } catch {
       setError('An error occurred while signing in.');
     } finally {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { MdPerson, MdEmail, MdLock, MdOutlineAttachMoney, MdVisibility, MdVisibilityOff } from 'react-icons/md';
+import { MdPerson, MdEmail, MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import { supabase, hasSupabase } from '../../lib/supabase';
 import logo from '../../assets/mobile-banking.png';
 const Register = () => {
@@ -10,7 +10,6 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
-    balance: '0',
   });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -44,7 +43,6 @@ const Register = () => {
         {
           data: {
             username: formData.username.trim(),
-            balance: Number(formData.balance || 0),
           },
         }
       );
@@ -55,11 +53,19 @@ const Register = () => {
       }
 
       if (data?.user?.id) {
-        await supabase.from('profiles').upsert({
-          id: data.user.id,
-          email: formData.email,
-          username: formData.username.trim(),
-        });
+        const { error: profileError } = await supabase.from('profiles').upsert(
+          {
+            id: data.user.id,
+            email: formData.email,
+            username: formData.username.trim(),
+            wallet_balance: 0,
+          },
+          { onConflict: 'id' }
+        );
+
+        if (profileError) {
+          console.error('Profile setup failed:', profileError);
+        }
       }
 
       navigate('/login');
@@ -142,24 +148,6 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     placeholder="Password"
-                    className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-4 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label htmlFor="balance" className="text-sm font-semibold text-slate-700">Balance</label>
-                <div className="relative">
-                  <MdOutlineAttachMoney className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
-                  <input
-                    id="balance"
-                    name="balance"
-                    type="number"
-                    min="0"
-                    value={formData.balance}
-                    onChange={handleChange}
-                    required
-                    placeholder="Enter your starting balance"
                     className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-4 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
                   />
                 </div>

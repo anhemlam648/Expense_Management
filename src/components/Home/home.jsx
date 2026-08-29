@@ -15,27 +15,34 @@ const Home = () => {
 
   useEffect(() => {
     const loadData = async () => {
+      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+      const savedBalance = Number(savedUser.balance || 0);
+      setWalletBalance(savedBalance);
+
       if (!hasSupabase) {
         setLoading(false);
         return;
       }
 
       const { data: authData } = await supabase.auth.getUser();
-      const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
-      setWalletBalance(Number(savedUser.balance || 0));
-      if (!authData?.user) {
+      const activeUser = authData?.user || (savedUser?.id ? { id: savedUser.id, email: savedUser.email || '' } : null);
+
+      if (!activeUser) {
+        setUser(null);
         setLoading(false);
         return;
       }
 
-      const userId = authData.user.id;
-      setUser(authData.user);
+      setUser(activeUser);
 
-      const [{ data: txData }, { data: categoryData }] = await Promise.all([
-        supabase.from('transactions').select('*').eq('user_id', userId),
-        supabase.from('categories').select('*').eq('user_id', userId),
+      const [{ data: txData }, { data: categoryData }, { data: profileData }] = await Promise.all([
+        supabase.from('transactions').select('*').eq('user_id', activeUser.id),
+        supabase.from('categories').select('*').eq('user_id', activeUser.id),
+        supabase.from('profiles').select('wallet_balance').eq('id', activeUser.id).maybeSingle(),
       ]);
 
+      const dbBalance = Number(profileData?.wallet_balance ?? savedBalance ?? 0);
+      setWalletBalance(dbBalance);
       setTransactions(txData || []);
       setCategories(categoryData || []);
       setLoading(false);
@@ -149,14 +156,14 @@ const Home = () => {
             <div>
               <h1 className="text-4xl font-extrabold text-slate-900">Welcome to Finance Studio</h1>
               <p className="mt-4 text-slate-600">Track expenses, categorize spending, and explore your dashboard even before signing in.</p>
-              <div className="mt-8 flex flex-col gap-4 sm:flex-row">
+              {/* <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link to="/login" className="rounded-3xl bg-sky-600 px-6 py-3 text-white shadow-lg shadow-sky-500/20 text-center hover:bg-sky-700">
                   Sign In
                 </Link>
                 <Link to="/register" className="rounded-3xl border border-slate-200 px-6 py-3 text-slate-900 text-center hover:bg-slate-100">
                   Create Account
                 </Link>
-              </div>
+              </div> */}
             </div>
             <div className="rounded-[2rem] bg-slate-50 p-6 shadow-lg">
               <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Getting started</p>

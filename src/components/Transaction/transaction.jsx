@@ -18,20 +18,23 @@ const Transaction = () => {
   });
 
   const fetchUser = async () => {
+    const token = localStorage.getItem('token');
+    const savedUser = JSON.parse(localStorage.getItem('user') || '{}');
+
     if (!hasSupabase) {
       setError('Supabase chưa được cấu hình.');
       setLoading(false);
       return;
     }
 
-    setLoading(true);
-    const { data: authData, error } = await supabase.auth.getUser();
-    if (error || !authData?.user) {
-      setError(error?.message || 'Unable to load user session. Please login again.');
+    if (!token || !savedUser?.id) {
+      setUser(null);
       setLoading(false);
       return;
     }
-    setUser(authData.user);
+
+    setUser({ id: savedUser.id, email: savedUser.email || '' });
+    setLoading(false);
   };
 
   const getLocalCategoriesKey = (userId) => `local_categories_${userId}`;
