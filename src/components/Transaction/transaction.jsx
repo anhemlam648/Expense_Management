@@ -83,7 +83,7 @@ const Transaction = () => {
         setError('Không tìm thấy bảng categories. Đang dùng dữ liệu local.');
         return loadLocalCategories(userId);
       }
-      setError(error.message || 'Failed to load categories.');
+      setError(error.message || t.transaction.loadCategoriesError);
       return [];
     }
 
@@ -111,7 +111,7 @@ const Transaction = () => {
         setError('Không tìm thấy bảng transactions. Đang dùng dữ liệu local.');
         return loadLocalTransactions(userId);
       }
-      setError(error.message || 'Failed to load transactions.');
+      setError(error.message || t.transaction.loadTransactionsError);
       return [];
     }
 

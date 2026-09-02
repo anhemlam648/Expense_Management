@@ -75,7 +75,7 @@ const Categories = () => {
         setLoading(false);
         return;
       }
-      setError(error.message || 'Failed to load categories.');
+      setError(error.message || t.categories.loadError);
       setCategories([]);
     } else {
       setCategories(data || []);
@@ -160,7 +160,7 @@ const Categories = () => {
         handleAddCategory();
         return;
       }
-      setError(error.message || 'Error adding category');
+      setError(error.message || t.categories.addError);
       return;
     }
 
@@ -171,7 +171,7 @@ const Categories = () => {
 
   const handleDeleteCategory = async (id) => {
     if (!user) {
-      setError('Please login first.');
+      setError(t.categories.deleteLogin);
       return;
     }
 
@@ -194,7 +194,7 @@ const Categories = () => {
         handleDeleteCategory(id);
         return;
       }
-      setError(error.message || 'Error deleting category');
+      setError(error.message || t.categories.deleteError);
     } else {
       const nextCategories = categories.filter((c) => c.id !== id);
       setCategories(nextCategories);

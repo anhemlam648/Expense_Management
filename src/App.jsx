@@ -20,7 +20,8 @@ import { LanguageProvider } from "./context/LanguageContext";
 function AppContent() {
   // const { theme } = useContext(ThemeContext);
   const location = useLocation();
-  const isAuthScreen = location.pathname === '/login' || location.pathname === '/register';
+  const normalizedPath = location.pathname.replace(/\/$/, '') || '/';
+  const isAuthScreen = normalizedPath === '/login' || normalizedPath === '/register';
 
   return (
     <div className="min-h-screen bg-[#f3f4f6] text-slate-900 lg:bg-gradient-to-br lg:from-slate-50 lg:via-slate-100 lg:to-cyan-50">

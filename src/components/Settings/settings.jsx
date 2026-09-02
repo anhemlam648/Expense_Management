@@ -428,7 +428,6 @@ import {
   MdEmail,
   MdLock,
   MdAccountBalanceWallet,
-  MdLogout,
   MdSave,
   MdCameraAlt,
   MdCurrencyExchange,
@@ -579,12 +578,6 @@ const Settings = () => {
     };
 
     reader.readAsDataURL(file);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    navigate('/login');
   };
 
   const parseAmountInput = (value) => {
@@ -1187,17 +1180,7 @@ const Settings = () => {
               </div>
             </section>
 
-            {/* ACTIONS */}
-            <section className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-
-              <button
-                onClick={handleLogout}
-                className="flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-white px-6 py-3.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50"
-              >
-                <MdLogout size={20} />
-                {t.settings.logout}
-              </button>
-
+            <section className="flex justify-end">
               <button
                 onClick={handleSave}
                 disabled={loading}

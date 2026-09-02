@@ -49,6 +49,13 @@ const Header = () => {
     navigate(path);
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setMobileMenuOpen(false);
+    navigate('/login', { replace: true });
+  };
+
   let user = null;
   const token = localStorage.getItem('token');
 
@@ -148,6 +155,17 @@ const Header = () => {
               </button>
             );
           })}
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="mt-6 flex w-full items-center justify-center gap-3 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+            </svg>
+            {t.settings.logout}
+          </button>
         </nav>
       </aside>
 
@@ -188,6 +206,17 @@ const Header = () => {
                 </button>
               );
             })}
+
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="mt-8 flex w-full items-center justify-center gap-3 rounded-3xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-600 transition hover:bg-rose-100"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h6a2 2 0 012 2v1" />
+              </svg>
+              {t.settings.logout}
+            </button>
           </nav>
         </div>
       </aside>

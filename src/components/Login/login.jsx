@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MdEmail, MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import { supabase, hasSupabase } from '../../lib/supabase';
@@ -9,12 +9,102 @@ const Login = () => {
   const { language, setLanguage, t } = useLanguage();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
+  const [forgotPassword, setForgotPassword] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (!hasSupabase) return undefined;
+
+    const recoveryType = new URLSearchParams(window.location.hash.slice(1)).get('type');
+    if (recoveryType === 'recovery') {
+      setRecoveryMode(true);
+    }
+
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setRecoveryMode(true);
+        setForgotPassword(false);
+        setError('');
+      }
+    });
+
+    return () => data.subscription.unsubscribe();
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     setError('');
+    setResetMessage('');
+  };
+
+  const handlePasswordReset = async (e) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setError('');
+    setResetMessage('');
+
+    try {
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        formData.email,
+        {
+          redirectTo:
+            import.meta.env.VITE_PASSWORD_RESET_REDIRECT_URL ||
+            (window.location.hostname === 'localhost'
+              ? `${window.location.origin}/login/`
+              : 'https://symphonious-empanada-f72dca.netlify.app/login/'),
+        }
+      );
+
+      if (resetError) {
+        setError(t.auth.resetLinkError);
+        return;
+      }
+
+      setResetMessage(t.auth.resetLinkSent);
+    } catch {
+      setError(t.auth.resetLinkError);
+    } finally {
+      setResetLoading(false);
+    }
+  };
+
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    setResetLoading(true);
+    setError('');
+    setResetMessage('');
+
+    if (newPassword !== confirmNewPassword) {
+      setError(t.auth.passwordsDoNotMatch);
+      setResetLoading(false);
+      return;
+    }
+
+    try {
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (updateError) {
+        setError(t.auth.passwordUpdateError);
+        return;
+      }
+
+      setResetMessage(t.auth.passwordUpdated);
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setRecoveryMode(false);
+    } catch {
+      setError(t.auth.passwordUpdateError);
+    } finally {
+      setResetLoading(false);
+    }
   };
 
   const handleLogin = async (e) => {
@@ -29,7 +119,11 @@ const Login = () => {
       });
 
       if (error) {
-        setError(error.message || t.auth.invalidCredentials);
+        const isInvalidLogin = /invalid.*(login|credentials)|email or password/i.test(
+          error.message || ''
+        );
+
+        setError(isInvalidLogin ? t.auth.invalidCredentials : error.message || t.auth.genericError);
         return;
       }
 
@@ -115,6 +209,110 @@ const Login = () => {
           </div>
 
           <div className="space-y-5 rounded-[24px] bg-[#edf2f7] p-4 sm:p-6">
+            {recoveryMode ? (
+              <form onSubmit={handleUpdatePassword} className="space-y-5">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-slate-800">{t.auth.resetPasswordTitle}</h3>
+                </div>
+
+                <div>
+                  <label htmlFor="new-password" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.newPassword}</label>
+                  <input
+                    id="new-password"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full rounded-[28px] border-2 border-slate-200 bg-white py-4 px-5 text-lg text-slate-800 shadow-inner outline-none placeholder:text-slate-500 focus:border-sky-400"
+                    autoComplete="new-password"
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="confirm-new-password" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.confirmNewPassword}</label>
+                  <input
+                    id="confirm-new-password"
+                    type="password"
+                    value={confirmNewPassword}
+                    onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    required
+                    minLength={6}
+                    className="w-full rounded-[28px] border-2 border-slate-200 bg-white py-4 px-5 text-lg text-slate-800 shadow-inner outline-none placeholder:text-slate-500 focus:border-sky-400"
+                    autoComplete="new-password"
+                  />
+                </div>
+
+                {error && (
+                  <div className="rounded-3xl bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-700">{error}</div>
+                )}
+
+                {resetMessage && (
+                  <div className="rounded-3xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">{resetMessage}</div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="flex w-full items-center justify-center rounded-[28px] bg-gradient-to-r from-sky-500 via-cyan-500 to-teal-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-sky-200 transition disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {resetLoading ? t.auth.signingIn : t.auth.resetPasswordTitle}
+                </button>
+              </form>
+            ) : forgotPassword ? (
+              <form onSubmit={handlePasswordReset} className="space-y-5">
+                <div className="text-center">
+                  <h3 className="text-xl font-bold text-slate-800">{t.auth.forgotPasswordTitle}</h3>
+                  <p className="mt-2 text-sm text-slate-500">{t.auth.forgotPasswordText}</p>
+                </div>
+
+                <div>
+                  <label htmlFor="reset-email" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.email}</label>
+                  <div className="relative">
+                    <MdEmail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-2xl" />
+                    <input
+                      id="reset-email"
+                      name="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      required
+                      className="w-full rounded-[28px] border-2 border-slate-200 bg-white py-4 pl-14 pr-4 text-lg text-slate-800 shadow-inner outline-none placeholder:text-slate-500 focus:border-sky-400"
+                      placeholder={t.auth.emailPlaceholder}
+                      autoComplete="email"
+                    />
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="rounded-3xl bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-700">{error}</div>
+                )}
+
+                {resetMessage && (
+                  <div className="rounded-3xl bg-emerald-50 px-4 py-3 text-center text-sm font-medium text-emerald-700">{resetMessage}</div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={resetLoading}
+                  className="flex w-full items-center justify-center rounded-[28px] bg-gradient-to-r from-sky-500 via-cyan-500 to-teal-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-sky-200 transition disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {resetLoading ? t.auth.signingIn : t.auth.sendResetLink}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setForgotPassword(false);
+                    setError('');
+                    setResetMessage('');
+                  }}
+                  className="block w-full text-center text-sm font-semibold text-sky-600 transition hover:text-sky-700"
+                >
+                  {t.auth.backToLogin}
+                </button>
+              </form>
+            ) : (
             <form onSubmit={handleLogin} className="space-y-5">
               <div>
                 <label htmlFor="email" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.email}</label>
@@ -133,6 +331,17 @@ const Login = () => {
                   />
                 </div>
               </div>
+
+              <button
+                type="button"
+                onClick={() => {
+                  setForgotPassword(true);
+                  setError('');
+                }}
+                className="block w-full text-right text-sm font-semibold text-sky-600 transition hover:text-sky-700"
+              >
+                {t.auth.forgotPassword}
+              </button>
 
               <div>
                 <label htmlFor="password" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.password}</label>
@@ -171,13 +380,14 @@ const Login = () => {
                 {loading ? t.auth.signingIn : t.auth.signIn}
               </button>
             </form>
+            )}
 
-            <p className="mt-5 text-center text-sm text-slate-600">
+            {!forgotPassword && <p className="mt-5 text-center text-sm text-slate-600">
               {t.auth.noAccount}{' '}
               <Link to="/register" className="font-semibold text-sky-600 transition hover:text-sky-700">
                 {t.auth.signUp}
               </Link>
-            </p>
+            </p>}
           </div>
         </div>
       </div>
