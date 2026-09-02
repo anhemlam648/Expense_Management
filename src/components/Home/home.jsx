@@ -182,8 +182,8 @@ const Home = () => {
   }
 
   return (
-    <main className="flex-1 p-8 bg-slate-50 text-slate-900">
-      <div className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr] mb-6">
+    <main className="flex-1 bg-slate-50 p-4 text-slate-900 sm:p-6 lg:p-8">
+      <div className="mb-6 grid min-w-0 gap-4 xl:grid-cols-[1.4fr_0.9fr]">
         <div className="rounded-[2.5rem] bg-gradient-to-br from-sky-600 via-teal-500 to-emerald-500 p-8 text-white shadow-2xl shadow-sky-500/20">
           <p className="text-sm uppercase tracking-[0.3em] text-sky-100/90">{t.home.overview}</p>
           <h1 className="mt-4 text-4xl font-extrabold">{t.home.overviewTitle}</h1>
@@ -220,29 +220,29 @@ const Home = () => {
         </div>
       </div>
 
-      <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr] mb-6">
-        <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-900 mb-3">{t.home.expenseVsIncome}</h2>
-            <div style={{ height: '200px' }}>
-              <Doughnut data={incomeExpensesChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }} />
+      <section className="mb-6 grid min-w-0 gap-4 xl:grid-cols-[1.3fr_0.9fr]">
+        <div className="rounded-[2rem] bg-white p-4 shadow-xl sm:p-6">
+            <h2 className="mb-3 text-lg font-semibold text-slate-900">{t.home.expenseVsIncome}</h2>
+            <div className="mx-auto w-full max-w-[240px]" style={{ height: '180px' }}>
+              <Doughnut data={incomeExpensesChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 12 } } } }} />
             </div>
         </div>
 
-        <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">{t.home.expenseByCategory}</h2>
-          <div style={{ height: '200px' }}>
-            <Doughnut data={expenseByCategoryData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }} />
+        <div className="rounded-[2rem] bg-white p-4 shadow-xl sm:p-6">
+          <h2 className="mb-3 text-lg font-semibold text-slate-900">{t.home.expenseByCategory}</h2>
+          <div className="mx-auto w-full max-w-[240px]" style={{ height: '180px' }}>
+            <Doughnut data={expenseByCategoryData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, boxWidth: 12 } } } }} />
           </div>
         </div>
       </section>
 
-      <section className="rounded-[2rem] bg-white p-6 shadow-xl">
+      <section className="rounded-[2rem] bg-white p-4 shadow-xl sm:p-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
           <h2 className="text-lg font-semibold text-slate-900">{t.home.monthlyTrend}</h2>
           <p className="text-sm text-slate-500">{t.home.basedOn}</p>
         </div>
-        <div style={{ height: '250px' }}>
-          <Bar data={monthlyChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } }, title: { display: false } }, scales: { y: { beginAtZero: true } } }} />
+        <div className="w-full" style={{ height: '220px' }}>
+          <Bar data={monthlyChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } }, title: { display: false } }, scales: { y: { beginAtZero: true }, x: { ticks: { maxRotation: 0, autoSkip: true } } } }} />
         </div>
       </section>
     </main>

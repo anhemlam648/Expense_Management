@@ -15,17 +15,17 @@ const Categories = () => {
   const [user, setUser] = useState(null);
   const [fallbackMode, setFallbackMode] = useState(false);
 
-  const getCategoryStorageKey = (userId) => `local_categories_${userId}`;
-  const loadLocalCategories = (userId) => {
+  const getCategoryStorageKey = useCallback((userId) => `local_categories_${userId}`, []);
+  const loadLocalCategories = useCallback((userId) => {
     try {
       return JSON.parse(localStorage.getItem(getCategoryStorageKey(userId)) || '[]');
     } catch {
       return [];
     }
-  };
-  const saveLocalCategories = (userId, items) => {
+  }, [getCategoryStorageKey]);
+  const saveLocalCategories = useCallback((userId, items) => {
     localStorage.setItem(getCategoryStorageKey(userId), JSON.stringify(items));
-  };
+  }, [getCategoryStorageKey]);
 
   const fetchUser = useCallback(async () => {
     const token = localStorage.getItem('token');
@@ -45,7 +45,7 @@ const Categories = () => {
 
     setUser({ id: savedUser.id, email: savedUser.email || '' });
     setLoading(false);
-  }, []);
+  }, [t]);
 
   const fetchCategories = useCallback(async () => {
     if (!user) return;
@@ -83,7 +83,7 @@ const Categories = () => {
       setError('');
     }
     setLoading(false);
-  }, [user]);
+  }, [user, t, loadLocalCategories, saveLocalCategories]);
 
   useEffect(() => {
     fetchUser();
@@ -255,8 +255,8 @@ const Categories = () => {
   };
 
   return (
-    <div className="p-4 sm:p-8">
-      <header className="mb-8">
+    <div className="mx-auto w-full max-w-[520px] bg-[#f4f6f8] px-3 py-4 sm:max-w-5xl sm:p-8">
+      <header className="mb-6 sm:mb-8">
         <h1 className="text-3xl font-bold text-slate-900">{t.categories.title}</h1>
         <p className="mt-2 text-slate-500">{t.categories.subtitle}</p>
       </header>
@@ -265,8 +265,8 @@ const Categories = () => {
       ) : null}
 
       <div className="grid gap-6 xl:grid-cols-[1.2fr_1fr]">
-        <section className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/70">
-          <h2 className="text-xl font-semibold text-slate-900 mb-4">{t.categories.addTitle}</h2>
+        <section className="rounded-[2rem] bg-white p-4 shadow-xl shadow-slate-200/70 sm:p-6">
+          <h2 className="mb-4 text-xl font-semibold text-slate-900">{t.categories.addTitle}</h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700">{t.categories.nameLabel}</label>
@@ -299,8 +299,8 @@ const Categories = () => {
           </div>
         </section>
 
-        <section className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/70">
-          <div className="flex items-center justify-between mb-4">
+        <section className="rounded-[2rem] bg-white p-4 shadow-xl shadow-slate-200/70 sm:p-6">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <h2 className="text-xl font-semibold text-slate-900">{t.categories.yourCategories}</h2>
             <span className="text-sm text-slate-500">{categories.length} {t.categories.items}</span>
           </div>

@@ -273,9 +273,9 @@ const Transaction = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6 lg:p-8">
-      <div className="mx-auto w-full max-w-7xl space-y-6">
-        <div className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/50">
+    <div className="min-h-screen bg-[#f4f6f8] px-3 py-4 sm:px-6 lg:p-8">
+      <div className="mx-auto w-full max-w-[520px] space-y-5 sm:max-w-7xl sm:space-y-6">
+        <div className="rounded-[2rem] bg-white p-4 shadow-xl shadow-slate-200/50 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-sky-600">{t.transaction.title}</p>
@@ -287,10 +287,10 @@ const Transaction = () => {
           </div>
         </div>
 
-        <section className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/50">
-          <h2 className="text-xl font-semibold text-slate-900 mb-5">{t.transaction.addNew}</h2>
-          <form onSubmit={handleAddTransaction} className="grid gap-4 lg:grid-cols-3">
-            <div className="col-span-2 grid gap-4 sm:grid-cols-2">
+        <section className="rounded-[2rem] bg-white p-4 shadow-xl shadow-slate-200/50 sm:p-6">
+          <h2 className="mb-5 text-xl font-semibold text-slate-900">{t.transaction.addNew}</h2>
+          <form onSubmit={handleAddTransaction} className="grid gap-4 md:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 md:col-span-2">
               <input
                 name="description"
                 value={formData.description}
@@ -331,7 +331,7 @@ const Transaction = () => {
                 name="note"
                 value={formData.note}
                 onChange={handleChange}
-                className="col-span-2 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100 sm:col-span-2"
                 placeholder={t.transaction.note}
               />
             </div>

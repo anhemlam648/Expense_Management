@@ -23,13 +23,13 @@ function AppContent() {
   const isAuthScreen = location.pathname === '/login' || location.pathname === '/register';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-cyan-50 text-slate-900">
+    <div className="min-h-screen bg-[#f3f4f6] text-slate-900 lg:bg-gradient-to-br lg:from-slate-50 lg:via-slate-100 lg:to-cyan-50">
       {!isAuthScreen && (
-        <div className="min-h-screen lg:flex">
+        <div className="flex min-h-screen flex-col lg:flex-row">
           <Header />
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
-              <div className="mx-auto w-full max-w-[1500px]">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+            <main className="flex-1 overflow-y-auto overflow-x-hidden px-2 py-4 sm:px-6 lg:px-8">
+              <div className="mx-auto w-full max-w-[540px] min-w-0 lg:max-w-[1500px]">
                 <Routes>
                   <Route path="/" element={<Navigate to="/login" replace />} />
                   <Route path="/login" element={<Login />} />

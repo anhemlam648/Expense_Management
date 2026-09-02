@@ -13,11 +13,11 @@ html {
 }
 
 body {
-  @apply min-h-screen bg-slate-100 text-slate-900 antialiased;
+  @apply min-h-screen overflow-x-hidden bg-slate-100 text-slate-900 antialiased;
 }
 
 #root {
-  min-height: 100%;
+  min-height: 100vh;
 }
 
 * {

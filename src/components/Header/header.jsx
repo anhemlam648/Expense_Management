@@ -62,7 +62,7 @@ const Header = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 px-4 py-3 shadow-sm backdrop-blur-xl lg:hidden">
+      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white px-4 py-3 shadow-sm lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <button
             type="button"
@@ -102,7 +102,7 @@ const Header = () => {
         />
       )}
 
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 shrink-0 transform border-r border-slate-200 bg-white/95 p-6 shadow-2xl backdrop-blur-xl transition-transform duration-200 ease-out lg:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 shrink-0 transform border-r border-slate-200 bg-white p-6 shadow-2xl transition-transform duration-200 ease-out lg:hidden ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="mb-6 flex items-center justify-between">
           <div className="rounded-2xl bg-slate-950 px-3 py-2 text-white shadow-lg">
             <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400">{t.header.title}</p>
@@ -151,7 +151,7 @@ const Header = () => {
         </nav>
       </aside>
 
-      <aside className="hidden w-72 shrink-0 flex-col justify-between border-r border-slate-200 bg-white/95 p-6 shadow-2xl backdrop-blur-xl lg:flex min-h-screen">
+      <aside className="hidden min-h-screen w-72 shrink-0 flex-col justify-between border-r border-slate-200 bg-white p-6 shadow-2xl lg:flex">
         <div className="space-y-8">
           <div className="rounded-3xl bg-slate-950 p-6 text-white shadow-2xl shadow-slate-900/10">
             <p className="text-xs uppercase tracking-[0.3em] text-slate-400">{t.header.title}</p>
