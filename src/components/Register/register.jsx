@@ -3,7 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { MdPerson, MdEmail, MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import { supabase, hasSupabase } from '../../lib/supabase';
 import { useLanguage } from '../../context/LanguageContext';
-import logo from '../../assets/mobile-banking.png';
+
 const Register = () => {
   const navigate = useNavigate();
   const { language, setLanguage, t } = useLanguage();
@@ -90,35 +90,31 @@ const Register = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
-      <div className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-slate-200">
-        <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500" />
-        <div className="relative p-10 pt-24">
-          <div className="mb-4 flex justify-end">
-            <select
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="rounded-xl border border-white/40 bg-white/10 px-3 py-2 text-sm text-white outline-none backdrop-blur-sm"
-            >
-              <option value="en" className="text-slate-900">English</option>
-              <option value="vi" className="text-slate-900">Tiếng Việt</option>
-            </select>
+    <div className="flex min-h-screen items-center justify-center bg-[#f3f5f7] px-4 py-8 text-slate-900">
+      <div className="w-full max-w-[660px]">
+        <div className="mb-6 flex items-center justify-end px-1">
+          <select
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 outline-none"
+          >
+            <option value="en">English</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
+        </div>
+
+        <div className="rounded-[28px] bg-[#f5f8fb] p-5 shadow-[0_10px_25px_rgba(148,163,184,0.15)] sm:p-7">
+          <div className="mb-6 text-center">
+            <h2 className="text-3xl font-extrabold text-slate-800 sm:text-[2.2rem]">{t.auth.registerTitle}</h2>
+            <p className="mt-2 text-base text-slate-500">{t.auth.registerSubtitle}</p>
           </div>
 
-          <div className="mb-10 text-center text-white">
-            <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 text-2xl font-bold shadow-lg shadow-slate-300/20">
-              ✨
-            </div>
-            <h1 className="text-4xl font-extrabold">{t.auth.registerTitle}</h1>
-            <p className="mt-3 text-sm text-slate-100/90">{t.auth.registerSubtitle}</p>
-          </div>
-
-          <div className="rounded-[2rem] bg-slate-50 p-8 shadow-xl shadow-slate-200/60">
-            <form onSubmit={handleRegister} className="space-y-6">
-              <div className="space-y-2">
-                <label htmlFor="username" className="text-sm font-semibold text-slate-700">{t.auth.username}</label>
+          <div className="space-y-5 rounded-[24px] bg-[#edf2f7] p-4 sm:p-6">
+            <form onSubmit={handleRegister} className="space-y-5">
+              <div>
+                <label htmlFor="username" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.username}</label>
                 <div className="relative">
-                  <MdPerson className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
+                  <MdPerson className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-2xl" />
                   <input
                     id="username"
                     name="username"
@@ -127,15 +123,15 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     placeholder={t.auth.usernamePlaceholder}
-                    className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-4 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    className="w-full rounded-[28px] border-2 border-slate-200 bg-white py-4 pl-14 pr-4 text-lg text-slate-800 shadow-inner outline-none placeholder:text-slate-500 focus:border-sky-400"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-semibold text-slate-700">{t.auth.email}</label>
+              <div>
+                <label htmlFor="email" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.email}</label>
                 <div className="relative">
-                  <MdEmail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
+                  <MdEmail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-2xl" />
                   <input
                     id="email"
                     name="email"
@@ -144,32 +140,39 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     placeholder={t.auth.emailPlaceholder}
-                    className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-4 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    className="w-full rounded-[28px] border-2 border-slate-200 bg-white py-4 pl-14 pr-4 text-lg text-slate-800 shadow-inner outline-none placeholder:text-slate-500 focus:border-sky-400"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-semibold text-slate-700">{t.auth.password}</label>
+              <div>
+                <label htmlFor="password" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.password}</label>
                 <div className="relative">
-                  <MdLock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
+                  <MdLock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-2xl" />
                   <input
                     id="password"
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     value={formData.password}
                     onChange={handleChange}
                     required
                     placeholder={t.auth.passwordPlaceholder}
-                    className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-4 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    className="w-full rounded-[28px] border-2 border-slate-200 bg-white py-4 pl-14 pr-14 text-lg text-slate-800 shadow-inner outline-none placeholder:text-slate-500 focus:border-sky-400"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500"
+                  >
+                    {showPassword ? <MdVisibilityOff className="h-5 w-5" /> : <MdVisibility className="h-5 w-5" />}
+                  </button>
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700">{t.auth.confirmPassword}</label>
+              <div>
+                <label htmlFor="confirmPassword" className="mb-2 block text-lg font-medium text-slate-700">{t.auth.confirmPassword}</label>
                 <div className="relative">
-                  <MdLock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
+                  <MdLock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-2xl" />
                   <input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -178,7 +181,7 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     placeholder={t.auth.confirmPasswordPlaceholder}
-                    className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-16 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
+                    className="w-full rounded-[28px] border-2 border-slate-200 bg-white py-4 pl-14 pr-14 text-lg text-slate-800 shadow-inner outline-none placeholder:text-slate-500 focus:border-sky-400"
                   />
                   <button
                     type="button"
@@ -197,13 +200,13 @@ const Register = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className={`flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-sky-500/20 transition duration-300 ${loading ? 'cursor-not-allowed opacity-70' : 'hover:scale-[1.01]'}`}
+                className={`flex w-full items-center justify-center rounded-[28px] bg-gradient-to-r from-sky-500 via-cyan-500 to-teal-500 px-6 py-4 text-base font-semibold text-white shadow-lg shadow-sky-200 transition ${loading ? 'cursor-not-allowed opacity-70' : 'hover:scale-[1.01]'}`}
               >
                 {loading ? t.auth.registering : t.auth.createAccount}
               </button>
             </form>
 
-            <p className="mt-6 text-center text-sm text-slate-600">
+            <p className="mt-5 text-center text-sm text-slate-600">
               {t.auth.hasAccount}{' '}
               <Link to="/login" className="font-semibold text-sky-600 transition hover:text-sky-700">
                 {t.auth.signInLink}
