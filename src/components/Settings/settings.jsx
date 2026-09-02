@@ -585,6 +585,23 @@ const Settings = () => {
     navigate('/login');
   };
 
+  const parseAmountInput = (value) => {
+    if (value === '' || value === null || value === undefined) {
+      return 0;
+    }
+
+    const normalized = String(value).replace(/,/g, '').trim();
+    const parsed = Number(normalized);
+
+    return Number.isFinite(parsed) ? parsed : 0;
+  };
+
+  const handleBalanceInputChange = (event) => {
+    const nextValue = event.target.value;
+    const sanitized = nextValue.replace(/[^\d,.-]/g, '');
+    setBalanceInput(sanitized);
+  };
+
   const handleSave = async () => {
     if (!username.trim()) {
       setMessage('Username cannot be empty.');
@@ -614,7 +631,7 @@ const Settings = () => {
         }
       }
 
-      const amountValue = Number(balanceInput || 0);
+      const amountValue = parseAmountInput(balanceInput);
 
       let nextBalance = currentBalance;
 
@@ -1129,14 +1146,11 @@ const Settings = () => {
                   </label>
 
                   <input
-                    type="number"
-                    step="0.01"
-                    min="0"
+                    type="text"
+                    inputMode="decimal"
                     value={balanceInput}
-                    onChange={(e) =>
-                      setBalanceInput(e.target.value)
-                    }
-                    placeholder="Enter amount"
+                    onChange={handleBalanceInputChange}
+                    placeholder="Enter amount, e.g. 1,000"
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50"
                   />
                 </div>
