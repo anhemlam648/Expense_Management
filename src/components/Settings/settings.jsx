@@ -436,10 +436,12 @@ import {
 
 import { supabase, hasSupabase } from '../../lib/supabase';
 import { useCurrency, CURRENCIES } from '../../context/CurrencyContext';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { currency, updateCurrency } = useCurrency();
+  const { t } = useLanguage();
 
   const [profile, setProfile] = useState(null);
   const [username, setUsername] = useState('');
@@ -604,14 +606,12 @@ const Settings = () => {
 
   const handleSave = async () => {
     if (!username.trim()) {
-      setMessage('Username cannot be empty.');
+      setMessage(t.settings.usernameRequired);
       return;
     }
 
     if (newPassword && !currentPassword) {
-      setMessage(
-        'Please enter your old password to update your new password.'
-      );
+      setMessage(t.settings.passwordRequired);
       return;
     }
 
@@ -627,7 +627,7 @@ const Settings = () => {
           });
 
         if (verifyError) {
-          throw new Error('Old password is incorrect.');
+          throw new Error(t.settings.oldPasswordIncorrect);
         }
       }
 
@@ -640,9 +640,7 @@ const Settings = () => {
           Number.isNaN(amountValue) ||
           amountValue < 0
         ) {
-          throw new Error(
-            'Please enter a valid non-negative balance amount.'
-          );
+          throw new Error(t.settings.invalidBalance);
         }
 
         if (balanceAction === 'add') {
@@ -722,11 +720,11 @@ const Settings = () => {
         })
       );
 
-      setMessage('Settings saved successfully!');
+      setMessage(t.settings.saveSuccess);
     } catch (error) {
       setMessage(
         error.message ||
-          'Failed to save settings. Please try again.'
+          t.settings.saveError
       );
     } finally {
       setLoading(false);
@@ -743,14 +741,11 @@ const Settings = () => {
             </div>
 
             <h1 className="text-2xl font-bold text-slate-900">
-              Supabase is not configured
+              {t.settings.supabaseNotConfigured}
             </h1>
 
             <p className="mt-3 text-sm leading-6 text-slate-500">
-              Please add environment variables
-              VITE_SUPABASE_URL and
-              VITE_SUPABASE_ANON_KEY to load
-              profile information.
+              {t.settings.supabaseConfigText}
             </p>
           </div>
         </div>
@@ -765,7 +760,7 @@ const Settings = () => {
           <div className="mx-auto h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-teal-600" />
 
           <p className="mt-4 text-sm font-medium text-slate-500">
-            Loading profile information...
+            {t.settings.loading}
           </p>
         </div>
       </div>
@@ -777,19 +772,18 @@ const Settings = () => {
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
         <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
           <h1 className="text-2xl font-bold text-slate-900">
-            Please log in
+            {t.settings.pleaseLogin}
           </h1>
 
           <p className="mt-3 text-sm leading-6 text-slate-500">
-            User information not found. Please log in
-            again to continue.
+            {t.settings.loginText}
           </p>
 
           <button
             onClick={() => navigate('/login')}
             className="mt-6 rounded-2xl bg-slate-900 px-6 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
           >
-            Go to Login
+            {t.settings.goToLogin}
           </button>
         </div>
       </div>
@@ -803,15 +797,15 @@ const Settings = () => {
         {/* Header */}
         <div className="mb-8">
           <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-teal-600">
-            Account
+            {t.settings.account}
           </p>
 
           <h1 className="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">
-            Profile Settings
+            {t.settings.title}
           </h1>
 
           <p className="mt-2 text-sm text-slate-500">
-            Manage your account, preferences and wallet.
+            {t.settings.subtitle}
           </p>
         </div>
 
@@ -857,7 +851,7 @@ const Settings = () => {
               </div>
 
               <h2 className="mt-4 text-xl font-bold text-slate-900">
-                {profile.username || 'User'}
+                {profile.username || t.settings.accountMessage}
               </h2>
 
               <p className="mt-1 truncate text-sm text-slate-500">
@@ -873,7 +867,7 @@ const Settings = () => {
 
                   <div>
                     <p className="text-xs font-medium text-slate-500">
-                      Wallet Balance
+                      {t.settings.walletBalance}
                     </p>
 
                     <p className="mt-0.5 text-lg font-bold text-slate-900">
@@ -884,7 +878,7 @@ const Settings = () => {
               </div>
 
               <p className="mt-4 text-xs leading-5 text-slate-400">
-                Click the camera icon to update your profile photo.
+                {t.settings.updatePhoto}
               </p>
             </div>
           </aside>
@@ -902,11 +896,11 @@ const Settings = () => {
 
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
-                    Personal Information
+                    {t.settings.personalInfo}
                   </h2>
 
                   <p className="text-sm text-slate-500">
-                    Update your basic profile information.
+                    {t.settings.personalInfoText}
                   </p>
                 </div>
               </div>
@@ -916,7 +910,7 @@ const Settings = () => {
                 {/* Username */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Username
+                    {t.settings.username}
                   </label>
 
                   <div className="relative">
@@ -931,7 +925,7 @@ const Settings = () => {
                       onChange={(e) =>
                         setUsername(e.target.value)
                       }
-                      placeholder="Enter your username"
+                      placeholder={t.settings.usernamePlaceholder}
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-11 pr-4 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-teal-500 focus:bg-white focus:ring-4 focus:ring-teal-50"
                     />
                   </div>
@@ -940,7 +934,7 @@ const Settings = () => {
                 {/* Email */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Email Address
+                    {t.settings.emailAddress}
                   </label>
 
                   <div className="relative">
@@ -958,14 +952,14 @@ const Settings = () => {
                   </div>
 
                   <p className="mt-2 text-xs text-slate-400">
-                    Email address cannot be changed here.
+                    {t.settings.emailHint}
                   </p>
                 </div>
 
                 {/* Currency */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Currency
+                    {t.settings.currency}
                   </label>
 
                   <div className="relative">
@@ -1008,11 +1002,11 @@ const Settings = () => {
 
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
-                    Password & Security
+                    {t.settings.passwordSecurity}
                   </h2>
 
                   <p className="text-sm text-slate-500">
-                    Keep your account secure with a strong password.
+                    {t.settings.passwordSecurityText}
                   </p>
                 </div>
               </div>
@@ -1022,7 +1016,7 @@ const Settings = () => {
                 {/* Current Password */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Current Password
+                    {t.settings.currentPassword}
                   </label>
 
                   <div className="relative">
@@ -1036,7 +1030,7 @@ const Settings = () => {
                       onChange={(e) =>
                         setCurrentPassword(e.target.value)
                       }
-                      placeholder="Enter current password"
+                      placeholder={t.settings.enterCurrentPassword}
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-4 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:bg-white focus:ring-4 focus:ring-violet-50"
                     />
 
@@ -1058,14 +1052,14 @@ const Settings = () => {
                   </div>
 
                   <p className="mt-2 text-xs text-slate-400">
-                    Required only when changing your password.
+                    {t.settings.passwordHint}
                   </p>
                 </div>
 
                 {/* New Password */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    New Password
+                    {t.settings.newPassword}
                   </label>
 
                   <div className="relative">
@@ -1079,7 +1073,7 @@ const Settings = () => {
                       onChange={(e) =>
                         setNewPassword(e.target.value)
                       }
-                      placeholder="Enter new password"
+                      placeholder={t.settings.enterNewPassword}
                       className="w-full rounded-2xl border border-slate-200 bg-slate-50 py-3.5 pl-4 pr-12 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-violet-500 focus:bg-white focus:ring-4 focus:ring-violet-50"
                     />
 
@@ -1101,7 +1095,7 @@ const Settings = () => {
                   </div>
 
                   <p className="mt-2 text-xs text-slate-400">
-                    Leave blank if you don't want to change it.
+                    {t.settings.newPasswordHint}
                   </p>
                 </div>
               </div>
@@ -1117,11 +1111,11 @@ const Settings = () => {
 
                 <div>
                   <h2 className="text-lg font-bold text-slate-900">
-                    Wallet
+                    {t.settings.wallet}
                   </h2>
 
                   <p className="text-sm text-slate-500">
-                    Manage your current wallet balance.
+                    {t.settings.walletText}
                   </p>
                 </div>
               </div>
@@ -1129,7 +1123,7 @@ const Settings = () => {
               {/* Current balance */}
               <div className="mb-5 rounded-2xl bg-gradient-to-r from-slate-900 to-slate-800 p-5 text-white">
                 <p className="text-xs font-medium text-slate-400">
-                  Current Wallet Balance
+                  {t.settings.currentWalletBalance}
                 </p>
 
                 <p className="mt-1 text-3xl font-bold tracking-tight">
@@ -1142,7 +1136,7 @@ const Settings = () => {
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Amount
+                    {t.settings.amount}
                   </label>
 
                   <input
@@ -1150,14 +1144,14 @@ const Settings = () => {
                     inputMode="decimal"
                     value={balanceInput}
                     onChange={handleBalanceInputChange}
-                    placeholder="Enter amount, e.g. 1,000"
+                    placeholder={t.settings.amountPlaceholder}
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50"
                   />
                 </div>
 
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
-                    Action
+                    {t.settings.action}
                   </label>
 
                   <select
@@ -1168,11 +1162,11 @@ const Settings = () => {
                     className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-50"
                   >
                     <option value="add">
-                      Add Amount
+                      {t.settings.addAmount}
                     </option>
 
                     <option value="set">
-                      Set New Value
+                      {t.settings.setNewValue}
                     </option>
                   </select>
                 </div>
@@ -1181,15 +1175,14 @@ const Settings = () => {
               <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-3">
                 <p className="text-xs leading-5 text-slate-500">
                   <span className="font-semibold text-slate-700">
-                    Add Amount:
+                    {t.settings.addAmount}:
                   </span>{' '}
-                  adds the entered amount to your current
-                  balance.
+                  {t.settings.addDesc}
                   <br />
                   <span className="font-semibold text-slate-700">
-                    Set New Value:
+                    {t.settings.setNewValue}:
                   </span>{' '}
-                  replaces your current balance.
+                  {t.settings.setDesc}
                 </p>
               </div>
             </section>
@@ -1202,7 +1195,7 @@ const Settings = () => {
                 className="flex items-center justify-center gap-2 rounded-2xl border border-rose-200 bg-white px-6 py-3.5 text-sm font-semibold text-rose-600 shadow-sm transition hover:border-rose-300 hover:bg-rose-50"
               >
                 <MdLogout size={20} />
-                Logout
+                {t.settings.logout}
               </button>
 
               <button
@@ -1213,8 +1206,8 @@ const Settings = () => {
                 <MdSave size={20} />
 
                 {loading
-                  ? 'Saving...'
-                  : 'Save Changes'}
+                  ? t.settings.saving
+                  : t.settings.saveChanges}
               </button>
             </section>
 

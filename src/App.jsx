@@ -13,6 +13,7 @@ import Register from "./components/Register/register";
 import PrivateRoute from "./components/Private/privaterouter";
 import Transaction from "./components/Transaction/transaction";
 import { CurrencyProvider } from "./context/CurrencyContext";
+import { LanguageProvider } from "./context/LanguageContext";
 // import ThemeProvider, { ThemeContext } from "./components/ThemeContext/themecontext";
 // import "./App.css";
 
@@ -24,7 +25,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-cyan-50 text-slate-900">
       {!isAuthScreen && (
-        <div className="flex min-h-screen">
+        <div className="min-h-screen lg:flex">
           <Header />
           <div className="flex-1 flex flex-col overflow-hidden">
             <main className="flex-1 overflow-y-auto px-4 py-6 sm:px-6 lg:px-8">
@@ -65,11 +66,13 @@ function AppContent() {
 function App() {
   return (
     // <ThemeProvider>
-    <CurrencyProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </CurrencyProvider>
+    <LanguageProvider>
+      <CurrencyProvider>
+        <Router>
+          <AppContent />
+        </Router>
+      </CurrencyProvider>
+    </LanguageProvider>
     // </ThemeProvider>
   );
 }

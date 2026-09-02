@@ -3,10 +3,12 @@ import { Link } from 'react-router-dom';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement } from 'chart.js';
 import { supabase, hasSupabase } from '../../lib/supabase';
+import { useLanguage } from '../../context/LanguageContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement);
 
 const Home = () => {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [walletBalance, setWalletBalance] = useState(0);
   const [transactions, setTransactions] = useState([]);
@@ -118,14 +120,14 @@ const Home = () => {
     labels: monthlyData.labels,
     datasets: [
       {
-        label: 'Income',
+        label: t.home.income,
         data: monthlyData.income,
         borderColor: '#14b8a6',
         backgroundColor: 'rgba(20, 184, 166, 0.25)',
         fill: true,
       },
       {
-        label: 'Expenses',
+        label: t.home.expensesChart,
         data: monthlyData.expense,
         borderColor: '#ef4444',
         backgroundColor: 'rgba(239, 68, 68, 0.25)',
@@ -135,7 +137,7 @@ const Home = () => {
   };
 
   const incomeExpensesChart = {
-    labels: ['Income', 'Expenses'],
+    labels: [t.home.income, t.home.expensesChart],
     datasets: [
       {
         data: [totalIncome, totalExpenses],
@@ -145,7 +147,7 @@ const Home = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">Loading dashboard...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">{t.home.loading}</div>;
   }
 
   if (!user) {
@@ -154,8 +156,8 @@ const Home = () => {
         <div className="mx-auto max-w-4xl rounded-[2rem] bg-white p-10 shadow-xl shadow-slate-200">
           <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-center">
             <div>
-              <h1 className="text-4xl font-extrabold text-slate-900">Welcome to Finance Studio</h1>
-              <p className="mt-4 text-slate-600">Track expenses, categorize spending, and explore your dashboard even before signing in.</p>
+              <h1 className="text-4xl font-extrabold text-slate-900">{t.home.welcomeTitle}</h1>
+              <p className="mt-4 text-slate-600">{t.home.welcomeText}</p>
               {/* <div className="mt-8 flex flex-col gap-4 sm:flex-row">
                 <Link to="/login" className="rounded-3xl bg-sky-600 px-6 py-3 text-white shadow-lg shadow-sky-500/20 text-center hover:bg-sky-700">
                   Sign In
@@ -166,11 +168,11 @@ const Home = () => {
               </div> */}
             </div>
             <div className="rounded-[2rem] bg-slate-50 p-6 shadow-lg">
-              <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Getting started</p>
+              <p className="text-sm uppercase tracking-[0.3em] text-sky-600">{t.home.gettingStarted}</p>
               <ul className="mt-6 space-y-4 text-slate-600">
-                <li>• Add categories and manage your budget</li>
-                <li>• Log payments and income in seconds</li>
-                <li>• View performance charts and trends</li>
+                <li>• {t.home.step1}</li>
+                <li>• {t.home.step2}</li>
+                <li>• {t.home.step3}</li>
               </ul>
             </div>
           </div>
@@ -183,35 +185,35 @@ const Home = () => {
     <main className="flex-1 p-8 bg-slate-50 text-slate-900">
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.9fr] mb-6">
         <div className="rounded-[2.5rem] bg-gradient-to-br from-sky-600 via-teal-500 to-emerald-500 p-8 text-white shadow-2xl shadow-sky-500/20">
-          <p className="text-sm uppercase tracking-[0.3em] text-sky-100/90">Dashboard overview</p>
-          <h1 className="mt-4 text-4xl font-extrabold">Manage your money with clarity</h1>
-          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-100/90">A modern expense tracker with quick insights, smart category control, and trend analytics for your finances.</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-sky-100/90">{t.home.overview}</p>
+          <h1 className="mt-4 text-4xl font-extrabold">{t.home.overviewTitle}</h1>
+          <p className="mt-4 max-w-2xl text-base leading-7 text-slate-100/90">{t.home.overviewText}</p>
           <div className="mt-8 grid gap-4 sm:grid-cols-3">
             <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl h-32 flex flex-col justify-center">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">Wallet</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">{t.home.wallet}</p>
               <p className="mt-3 text-3xl font-semibold">${walletBalance.toLocaleString()}</p>
             </div>
             <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl h-32 flex flex-col justify-center">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">Expenses</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">{t.home.expenses}</p>
               <p className="mt-4 text-3xl font-semibold">${totalExpenses.toLocaleString()}</p>
             </div>
             <div className="rounded-3xl bg-white/10 p-5 backdrop-blur-xl h-32 flex flex-col justify-center">
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">Wallet Balance</p>
+              <p className="text-xs uppercase tracking-[0.3em] text-slate-100/80">{t.home.walletBalance}</p>
               <p className={`mt-3 text-3xl font-semibold ${balanceSignClass}`}>${currentBalance.toLocaleString()}</p>
             </div>
           </div>
         </div>
 
         <div className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/70">
-          <h2 className="text-xl font-semibold text-slate-900">Latest insights</h2>
-          <p className="mt-2 text-sm text-slate-500">A quick snapshot of your spending categories and cash flow.</p>
+          <h2 className="text-xl font-semibold text-slate-900">{t.home.latestInsights}</h2>
+          <p className="mt-2 text-sm text-slate-500">{t.home.latestInsightsText}</p>
           <div className="mt-6 space-y-4">
             <div className="rounded-3xl bg-slate-50 p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Top category</p>
-              <p className="mt-2 text-lg font-semibold text-slate-900">{categorySummary[0]?.name || 'No categories yet'}</p>
+              <p className="text-sm text-slate-500">{t.home.topCategory}</p>
+              <p className="mt-2 text-lg font-semibold text-slate-900">{categorySummary[0]?.name || t.home.noCategories}</p>
             </div>
             <div className="rounded-3xl bg-slate-50 p-5 shadow-sm">
-              <p className="text-sm text-slate-500">Transaction count</p>
+              <p className="text-sm text-slate-500">{t.home.transactionCount}</p>
               <p className="mt-2 text-lg font-semibold text-slate-900">{transactions.length}</p>
             </div>
           </div>
@@ -220,14 +222,14 @@ const Home = () => {
 
       <section className="grid gap-6 xl:grid-cols-[1.3fr_0.9fr] mb-6">
         <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-            <h2 className="text-lg font-semibold text-slate-900 mb-3">Expense vs Income</h2>
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">{t.home.expenseVsIncome}</h2>
             <div style={{ height: '200px' }}>
               <Doughnut data={incomeExpensesChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }} />
             </div>
         </div>
 
         <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">Expenses by Category</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">{t.home.expenseByCategory}</h2>
           <div style={{ height: '200px' }}>
             <Doughnut data={expenseByCategoryData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 } } } } }} />
           </div>
@@ -236,8 +238,8 @@ const Home = () => {
 
       <section className="rounded-[2rem] bg-white p-6 shadow-xl">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-4">
-          <h2 className="text-lg font-semibold text-slate-900">Monthly Trend</h2>
-          <p className="text-sm text-slate-500">Based on your recorded transactions</p>
+          <h2 className="text-lg font-semibold text-slate-900">{t.home.monthlyTrend}</h2>
+          <p className="text-sm text-slate-500">{t.home.basedOn}</p>
         </div>
         <div style={{ height: '250px' }}>
           <Bar data={monthlyChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } }, title: { display: false } }, scales: { y: { beginAtZero: true } } }} />

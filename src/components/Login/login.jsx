@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { MdEmail, MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md';
 import { supabase, hasSupabase } from '../../lib/supabase';
+import { useLanguage } from '../../context/LanguageContext';
 import logo from '../../assets/mobile-banking.png';
 const Login = () => {
   const navigate = useNavigate();
+  const { language, setLanguage, t } = useLanguage();
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -27,12 +29,12 @@ const Login = () => {
       });
 
       if (error) {
-        setError(error.message || 'Invalid email or password');
+        setError(error.message || t.auth.invalidCredentials);
         return;
       }
 
       if (!data?.session?.user) {
-        setError('Please confirm your email or check your credentials.');
+        setError(t.auth.confirmEmail);
         return;
       }
 
@@ -75,7 +77,7 @@ const Login = () => {
       localStorage.setItem('token', data.session.access_token);
       navigate('/home', { replace: true });
     } catch {
-      setError('An error occurred while signing in.');
+      setError(t.auth.genericError);
     } finally {
       setLoading(false);
     }
@@ -85,8 +87,8 @@ const Login = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
         <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
-          <h1 className="text-3xl font-bold mb-4">Supabase chưa cấu hình</h1>
-          <p className="text-slate-600">Vui lòng thêm biến môi trường VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY để đăng nhập.</p>
+          <h1 className="text-3xl font-bold mb-4">{t.auth.supabaseNotConfigured}</h1>
+          <p className="text-slate-600">{t.auth.supabaseConfigText}</p>
         </div>
       </div>
     );
@@ -97,19 +99,30 @@ const Login = () => {
       <div className="relative mx-auto w-full max-w-xl overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-slate-200">
         <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500" />
         <div className="relative p-10 pt-24">
+          <div className="mb-4 flex justify-end">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="rounded-xl border border-white/40 bg-white/10 px-3 py-2 text-sm text-white outline-none backdrop-blur-sm"
+            >
+              <option value="en" className="text-slate-900">English</option>
+              <option value="vi" className="text-slate-900">Tiếng Việt</option>
+            </select>
+          </div>
+
           <div className="mb-10 text-center text-white">
 
             <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-3xl bg-white/15 text-2xl font-bold shadow-lg shadow-slate-300/20">
               <img src={logo} alt="Logo" className="h-8 w-8" />
             </div>
-            <h1 className="text-4xl font-extrabold">Wallet Login</h1>
-            <p className="mt-3 text-sm text-slate-100/90">Sign in to access your virtual wallet and expense reports.</p>
+            <h1 className="text-4xl font-extrabold">{t.auth.loginTitle}</h1>
+            <p className="mt-3 text-sm text-slate-100/90">{t.auth.loginSubtitle}</p>
           </div>
 
           <div className="rounded-[2rem] bg-slate-50 p-8 shadow-xl shadow-slate-200/60">
             <form onSubmit={handleLogin} className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="email" className="text-sm font-semibold text-slate-700">Email</label>
+                <label htmlFor="email" className="text-sm font-semibold text-slate-700">{t.auth.email}</label>
                 <div className="relative">
                   <MdEmail className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
                   <input
@@ -120,14 +133,14 @@ const Login = () => {
                     onChange={handleChange}
                     required
                     className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-4 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                    placeholder="Email address"
+                    placeholder={t.auth.emailPlaceholder}
                     autoComplete="email"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="password" className="text-sm font-semibold text-slate-700">Password</label>
+                <label htmlFor="password" className="text-sm font-semibold text-slate-700">{t.auth.password}</label>
                 <div className="relative">
                   <MdLock className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sky-500 text-xl" />
                   <input
@@ -138,7 +151,7 @@ const Login = () => {
                     onChange={handleChange}
                     required
                     className="w-full rounded-3xl border border-slate-200 bg-white py-3 pl-14 pr-16 text-slate-900 outline-none transition focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                    placeholder="Password"
+                    placeholder={t.auth.passwordPlaceholder}
                     autoComplete="current-password"
                   />
                   <button
@@ -160,14 +173,14 @@ const Login = () => {
                 disabled={loading}
                 className={`flex w-full items-center justify-center rounded-3xl bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500 px-6 py-3 text-base font-semibold text-white shadow-lg shadow-sky-500/20 transition duration-300 ${loading ? 'cursor-not-allowed opacity-70' : 'hover:scale-[1.01]'}`}
               >
-                {loading ? 'Signing In...' : 'Sign In'}
+                {loading ? t.auth.signingIn : t.auth.signIn}
               </button>
             </form>
 
             <p className="mt-6 text-center text-sm text-slate-600">
-              Don’t have an account?{' '}
+              {t.auth.noAccount}{' '}
               <Link to="/register" className="font-semibold text-sky-600 transition hover:text-sky-700">
-                Sign up
+                {t.auth.signUp}
               </Link>
             </p>
           </div>

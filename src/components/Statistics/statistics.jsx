@@ -2,10 +2,12 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Bar, Line, Doughnut } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement } from 'chart.js';
 import { supabase, hasSupabase } from '../../lib/supabase';
+import { useLanguage } from '../../context/LanguageContext';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, ArcElement, PointElement, LineElement);
 
 const Statistics = () => {
+  const { t } = useLanguage();
   const [user, setUser] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -148,15 +150,15 @@ const Statistics = () => {
   }, [categories, transactions]);
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">Loading statistics...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">{t.statistics.loading}</div>;
   }
 
   if (!hasSupabase) {
     return (
       <main className="flex-1 p-8 bg-slate-50 text-slate-900">
         <div className="mx-auto max-w-4xl rounded-[2rem] bg-white p-10 shadow-xl shadow-slate-200">
-          <h1 className="text-4xl font-bold text-slate-900">Statistics</h1>
-          <p className="mt-4 text-slate-600">Supabase chưa được cấu hình. Vui lòng thêm VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY.</p>
+          <h1 className="text-4xl font-bold text-slate-900">{t.statistics.title}</h1>
+          <p className="mt-4 text-slate-600">{t.statistics.supabaseConfigText}</p>
         </div>
       </main>
     );
@@ -166,8 +168,8 @@ const Statistics = () => {
     return (
       <main className="flex-1 p-8 bg-slate-50 text-slate-900">
         <div className="mx-auto max-w-4xl rounded-[2rem] bg-white p-10 shadow-xl shadow-slate-200">
-          <h1 className="text-4xl font-bold text-slate-900">Statistics</h1>
-          <p className="mt-4 text-slate-600">Sign in to view personalized expense analytics.</p>
+          <h1 className="text-4xl font-bold text-slate-900">{t.statistics.title}</h1>
+          <p className="mt-4 text-slate-600">{t.statistics.signInText}</p>
         </div>
       </main>
     );
@@ -177,36 +179,36 @@ const Statistics = () => {
     <main className="flex-1 p-8 bg-slate-50 text-slate-900">
       <header className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900">Spending Analytics</h1>
-          <p className="mt-2 text-slate-500">Track where your wallet is spent each month.</p>
+          <h1 className="text-3xl font-bold text-slate-900">{t.statistics.title}</h1>
+          <p className="mt-2 text-slate-500">{t.statistics.subtitle}</p>
         </div>
       </header>
 
       <section className="grid gap-6 md:grid-cols-3 mb-8">
         <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Total Income</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{t.statistics.totalIncome}</p>
           <p className="mt-4 text-3xl font-semibold text-emerald-600">${totalIncome.toLocaleString()}</p>
         </div>
         <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Total Expenses</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{t.statistics.totalExpenses}</p>
           <p className="mt-4 text-3xl font-semibold text-rose-600">${totalExpenses.toLocaleString()}</p>
         </div>
         <div className="rounded-[2rem] bg-white p-6 shadow-xl">
-          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Balance</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{t.statistics.balance}</p>
           <p className="mt-4 text-3xl font-semibold text-slate-900">${balance.toLocaleString()}</p>
         </div>
       </section>
 
       <section className="grid gap-6 md:grid-cols-2 mb-6">
         <div className="rounded-[2rem] bg-white p-4 shadow-xl overflow-hidden">
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">Monthly Spending Analysis</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">{t.statistics.monthlyTitle}</h2>
           <div style={{ height: '200px', width: '100%' }}>
             <Line data={monthlySpendingData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } }, scales: { y: { beginAtZero: true } } }} />
           </div>
         </div>
 
         <div className="rounded-[2rem] bg-white p-4 shadow-xl overflow-hidden">
-          <h2 className="text-lg font-semibold text-slate-900 mb-3">Quarterly Income vs Expense</h2>
+          <h2 className="text-lg font-semibold text-slate-900 mb-3">{t.statistics.quarterlyTitle}</h2>
           <div style={{ height: '200px', width: '100%' }}>
             <Bar data={quarterlyChartData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'top', labels: { font: { size: 12 } } } }, scales: { y: { beginAtZero: true } } }} />
           </div>
@@ -214,7 +216,7 @@ const Statistics = () => {
       </section>
 
       <section className="rounded-[2rem] bg-white p-4 shadow-xl overflow-hidden">
-        <h2 className="text-lg font-semibold text-slate-900 mb-3">Expense Breakdown by Category</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-3">{t.statistics.categoryTitle}</h2>
         <div className="flex items-center justify-center">
           <div style={{ width: '200px', height: '200px' }}>
             <Doughnut data={categorySpendingData} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { font: { size: 12 }, padding: 10 } } } }} />

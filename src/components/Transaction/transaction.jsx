@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { supabase, hasSupabase } from '../../lib/supabase';
+import { useLanguage } from '../../context/LanguageContext';
 
 const Transaction = () => {
+  const { t } = useLanguage();
   const [transactions, setTransactions] = useState([]);
   const [categories, setCategories] = useState([]);
   const [openDetails, setOpenDetails] = useState(null);
@@ -132,8 +134,8 @@ const Transaction = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
         <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
-          <h1 className="text-3xl font-bold mb-4">Supabase chưa cấu hình</h1>
-          <p className="text-slate-600">Vui lòng thêm VITE_SUPABASE_URL và VITE_SUPABASE_ANON_KEY để quản lý giao dịch.</p>
+          <h1 className="text-3xl font-bold mb-4">{t.auth.supabaseNotConfigured}</h1>
+          <p className="text-slate-600">{t.auth.supabaseConfigText}</p>
         </div>
       </div>
     );
@@ -143,8 +145,8 @@ const Transaction = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4 py-10 text-slate-900">
         <div className="rounded-[2rem] bg-white p-10 shadow-2xl shadow-slate-200 text-center max-w-xl">
-          <h1 className="text-3xl font-bold mb-4">Yêu cầu đăng nhập</h1>
-          <p className="text-slate-600">Vui lòng đăng nhập để quản lý giao dịch của bạn.</p>
+          <h1 className="text-3xl font-bold mb-4">{t.transaction.requiredLoginTitle}</h1>
+          <p className="text-slate-600">{t.transaction.requiredLoginText}</p>
         </div>
       </div>
     );
@@ -170,7 +172,7 @@ const Transaction = () => {
 
   const getCategoryInfo = (categoryId) => {
     const cat = categories.find((c) => c.id === categoryId);
-    return cat ? { name: cat.name, type: cat.type } : { name: 'Unknown', type: 'UNKNOWN' };
+    return cat ? { name: cat.name, type: cat.type } : { name: t.transaction.unknown, type: 'UNKNOWN' };
   };
 
   const handleChange = (e) => {
@@ -180,7 +182,7 @@ const Transaction = () => {
   const handleAddTransaction = async (e) => {
     e.preventDefault();
     if (!formData.description.trim() || !formData.amount || !formData.categoryId) {
-      setError('Please complete all transaction fields.');
+      setError(t.transaction.completeFields);
       return;
     }
 
@@ -204,7 +206,7 @@ const Transaction = () => {
         date: new Date().toISOString().slice(0, 10),
         note: '',
       });
-      setError('Giao dịch được lưu cục bộ do Supabase không khả dụng.');
+      setError(t.transaction.fallbackLocal);
       return;
     }
 
@@ -225,7 +227,7 @@ const Transaction = () => {
         handleAddTransaction(e);
         return;
       }
-      setError('Failed to add transaction.');
+      setError(t.transaction.failedAdd);
       return;
     }
 
@@ -246,7 +248,7 @@ const Transaction = () => {
   };
 
   const handleDeleteTransaction = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) return;
+    if (!window.confirm(t.transaction.confirmDelete)) return;
 
     if (fallbackMode || !hasSupabase) {
       const updatedTransactions = transactions.filter((t) => t.id !== id);
@@ -258,7 +260,7 @@ const Transaction = () => {
     const { error } = await supabase.from('transactions').delete().eq('id', id);
 
     if (error) {
-      setError('Failed to delete transaction.');
+      setError(t.transaction.failedDelete);
       return;
     }
 
@@ -267,7 +269,7 @@ const Transaction = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">Loading...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-700">{t.transaction.loading}</div>;
   }
 
   return (
@@ -276,17 +278,17 @@ const Transaction = () => {
         <div className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/50">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Transactions</p>
-              <h1 className="mt-2 text-3xl font-semibold text-slate-900">Transaction Management</h1>
+              <p className="text-sm uppercase tracking-[0.3em] text-sky-600">{t.transaction.title}</p>
+              <h1 className="mt-2 text-3xl font-semibold text-slate-900">{t.transaction.subtitle}</h1>
             </div>
             <p className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 shadow-sm">
-              {transactions.length} records found
+              {transactions.length} {t.transaction.records}
             </p>
           </div>
         </div>
 
         <section className="rounded-[2rem] bg-white p-6 shadow-xl shadow-slate-200/50">
-          <h2 className="text-xl font-semibold text-slate-900 mb-5">Add New Transaction</h2>
+          <h2 className="text-xl font-semibold text-slate-900 mb-5">{t.transaction.addNew}</h2>
           <form onSubmit={handleAddTransaction} className="grid gap-4 lg:grid-cols-3">
             <div className="col-span-2 grid gap-4 sm:grid-cols-2">
               <input
@@ -294,7 +296,7 @@ const Transaction = () => {
                 value={formData.description}
                 onChange={handleChange}
                 className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                placeholder="Description"
+                placeholder={t.transaction.description}
               />
               <input
                 name="amount"
@@ -303,7 +305,7 @@ const Transaction = () => {
                 type="number"
                 step="0.01"
                 className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                placeholder="Amount"
+                placeholder={t.transaction.amount}
               />
               <select
                 name="categoryId"
@@ -311,7 +313,7 @@ const Transaction = () => {
                 onChange={handleChange}
                 className="rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
               >
-                <option value="">Choose category</option>
+                <option value="">{t.transaction.chooseCategory}</option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name} ({cat.type})
@@ -330,7 +332,7 @@ const Transaction = () => {
                 value={formData.note}
                 onChange={handleChange}
                 className="col-span-2 rounded-3xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:border-sky-400 focus:ring-4 focus:ring-sky-100"
-                placeholder="Note (optional)"
+                placeholder={t.transaction.note}
               />
             </div>
             <div className="flex items-end">
@@ -338,7 +340,7 @@ const Transaction = () => {
                 type="submit"
                 className="w-full rounded-3xl bg-gradient-to-r from-sky-500 via-teal-500 to-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-sky-500/20 transition hover:scale-[1.01]"
               >
-                Add Transaction
+                {t.transaction.addButton}
               </button>
             </div>
           </form>
@@ -346,48 +348,48 @@ const Transaction = () => {
         </section>
 
         <div className="grid gap-6 xl:grid-cols-3">
-          {transactions.map((t) => {
-            const categoryInfo = getCategoryInfo(t.category_id);
+          {transactions.map((transactionItem) => {
+            const categoryInfo = getCategoryInfo(transactionItem.category_id);
             const isIncome = categoryInfo.type === 'INCOME';
-            const isOpen = openDetails === t.id;
+            const isOpen = openDetails === transactionItem.id;
 
             return (
-              <article key={t.id} className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
+              <article key={transactionItem.id} className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white p-5 shadow-lg transition hover:-translate-y-1 hover:shadow-xl">
                 <div className="flex items-center justify-between gap-3 text-sm text-slate-500">
-                  <span>{new Date(t.date).toLocaleDateString()}</span>
+                  <span>{new Date(transactionItem.date).toLocaleDateString()}</span>
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                    {categoryInfo.type !== 'UNKNOWN' ? categoryInfo.type : 'Unknown'}
+                    {categoryInfo.type !== 'UNKNOWN' ? categoryInfo.type : t.transaction.unknown}
                   </span>
                 </div>
                 <div className="mt-5 space-y-3">
-                  <h2 className="text-xl font-semibold text-slate-900">{t.description}</h2>
+                  <h2 className="text-xl font-semibold text-slate-900">{transactionItem.description}</h2>
                   <p className={`text-3xl font-bold ${isIncome ? 'text-emerald-600' : 'text-rose-600'}`}>
-                    {isIncome ? '+' : '-'}${Number(t.amount).toLocaleString()}
+                    {isIncome ? '+' : '-'}${Number(transactionItem.amount).toLocaleString()}
                   </p>
                 </div>
                 <div className="mt-5 flex items-center justify-between gap-4">
                   <button
-                    onClick={() => toggleDetails(t.id)}
+                    onClick={() => toggleDetails(transactionItem.id)}
                     className="rounded-full bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
                   >
-                    {isOpen ? 'Hide Details' : 'View Details'}
+                    {isOpen ? t.transaction.hideDetails : t.transaction.viewDetails}
                   </button>
                   <div className="flex gap-2">
                     <span className="rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-700">
                       {categoryInfo.name}
                     </span>
                     <button
-                      onClick={() => handleDeleteTransaction(t.id)}
+                      onClick={() => handleDeleteTransaction(transactionItem.id)}
                       className="rounded-full bg-rose-100 px-4 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-200"
                     >
-                      Delete
+                      {t.transaction.delete}
                     </button>
                   </div>
                 </div>
                 {isOpen && (
                   <div className="mt-4 rounded-3xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                    <p className="font-semibold text-slate-800">Note</p>
-                    <p className="mt-2 leading-6">{t.note || 'No additional notes available.'}</p>
+                    <p className="font-semibold text-slate-800">{t.transaction.noteLabel}</p>
+                    <p className="mt-2 leading-6">{transactionItem.note || t.transaction.noNote}</p>
                   </div>
                 )}
               </article>
